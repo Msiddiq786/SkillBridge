@@ -1,4 +1,4 @@
-# Interview AI Pro
+# STUDENT_SKILL_BRIGDE
 
 An AI-powered interview preparation platform that analyzes a candidate's resume and target job description to generate personalized interview preparation.
 
