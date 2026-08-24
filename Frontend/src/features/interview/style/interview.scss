@@ -1,0 +1,1754 @@
+// ── Shared Variables (mirrors home.scss theme) ────────────────────────────────
+$bg-page: #0d1117;
+$bg-card: #161b22;
+$bg-panel: #1c2230;
+$bg-input: #1e2535;
+$border-color: #2a3348;
+$text-primary: #e6edf3;
+$text-muted: #7d8590;
+$accent: #ff2d78;
+$font-stack: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+// severity palette
+$severity-high: #ff4d4d;
+$severity-medium: #f5a623;
+$severity-low: #3fb950;
+
+*::-webkit-scrollbar {
+    display: none;
+}
+
+// ── Page Shell ────────────────────────────────────────────────────────────────
+.interview-page {
+    width: 100%;
+    min-height: 100vh;
+    background-color: $bg-page;
+    color: $text-primary;
+    font-family: $font-stack;
+    display: flex;
+    align-items: stretch;
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+// ── 3-Column Layout ───────────────────────────────────────────────────────────
+.interview-layout {
+    display: flex;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    background-color: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: 1rem;
+    justify-content: space-between;
+}
+
+.interview-divider {
+    width: 1px;
+    background-color: $border-color;
+    flex-shrink: 0;
+}
+
+// ── Left Nav ─────────────────────────────────────────────────────────────────
+.interview-nav {
+    width: 220px;
+    flex-shrink: 0;
+    padding: 1.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.25rem;
+
+    &__label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: $text-muted;
+        padding: 0 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        width: 100%;
+        padding: 0.65rem 0.75rem;
+        background: none;
+        border: none;
+        border-radius: 0.5rem;
+        color: $text-muted;
+        font-family: $font-stack;
+        font-size: 0.875rem;
+        cursor: pointer;
+        text-align: left;
+        transition: background-color 0.15s, color 0.15s;
+
+        &:hover {
+            background-color: $bg-panel;
+            color: $text-primary;
+        }
+
+        &--active {
+            background-color: rgba($accent, 0.1);
+            color: $accent;
+
+            .interview-nav__icon svg {
+                stroke: $accent;
+            }
+        }
+    }
+
+    &__icon {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+}
+
+// ── Center Content ────────────────────────────────────────────────────────────
+.interview-content {
+    flex: 1;
+    padding: 1.75rem 2rem;
+    overflow-y: auto;
+    min-height: initial;
+    max-height: calc(100vh - 3rem);
+    padding-bottom: 5rem;
+    align-items: flex-start;
+
+    section {
+        min-height: 100%;
+    }
+}
+
+.content-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid $border-color;
+
+    h2 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: $text-primary;
+        margin: 0;
+    }
+
+    &__count {
+        font-size: 0.8rem;
+        color: $text-muted;
+        background-color: $bg-panel;
+        padding: 0.15rem 0.6rem;
+        border-radius: 2rem;
+        border: 1px solid $border-color;
+    }
+}
+
+// ── Question Cards ────────────────────────────────────────────────────────────
+.q-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.q-card {
+    background-color: $bg-panel;
+    border: 1px solid $border-color;
+    border-radius: 0.6rem;
+    overflow: hidden;
+    transition: border-color 0.2s;
+
+    &:hover {
+        border-color: #3b4763;
+    }
+
+    &__header {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.9rem 1rem;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    &__index {
+        flex-shrink: 0;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: $accent;
+        background-color: rgba($accent, 0.1);
+        border: 1px solid rgba($accent, 0.2);
+        border-radius: 0.3rem;
+        padding: 0.15rem 0.4rem;
+        margin-top: 2px;
+    }
+
+    &__question {
+        flex: 1;
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: $text-primary;
+        line-height: 1.5;
+    }
+
+    &__chevron {
+        flex-shrink: 0;
+        color: $text-muted;
+        transition: transform 0.2s;
+        margin-top: 2px;
+
+        &--open {
+            transform: rotate(180deg);
+            color: $accent;
+        }
+    }
+
+    &__body {
+        padding: 0 1.25rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        border-top: 1px solid $border-color;
+        padding-top: 1rem;
+    }
+
+    // ⭐ Coach Banner for One-Line Answer
+    &__coach-banner {
+        background: rgba(#e3b341, 0.08);
+        border: 1px solid rgba(#e3b341, 0.3);
+        border-radius: 0.5rem;
+        padding: 0.85rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    &__coach-badge {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #e3b341;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    &__coach-text {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: $text-primary;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    &__section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+
+        p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #a8b3cf;
+            line-height: 1.6;
+        }
+    }
+
+    &__desc-text {
+        font-size: 0.85rem;
+        color: #c9d1d9 !important;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    // 💡 Code / Easy Example Box
+    &__code-block {
+        background: rgba($bg-page, 0.8);
+        border: 1px solid $border-color;
+        border-radius: 0.45rem;
+        padding: 0.75rem 1rem;
+        overflow-x: auto;
+
+        pre {
+            margin: 0;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.825rem;
+            color: #7ee787;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    }
+
+    // 🗣️ Spoken Interview Answer Box
+    &__speak-section {
+        background: rgba($bg-page, 0.5);
+        border: 1px solid rgba($accent, 0.25);
+        border-radius: 0.5rem;
+        padding: 0.85rem 1rem;
+    }
+
+    &__speak-box {
+        p {
+            font-size: 0.875rem !important;
+            font-weight: 500;
+            color: $text-primary !important;
+            line-height: 1.6;
+            font-style: italic;
+            margin: 0;
+        }
+    }
+
+    // ⭐ STAR Method Grid
+    &__star-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.65rem;
+    }
+
+    &__star-item {
+        background: rgba($bg-page, 0.6);
+        border: 1px solid $border-color;
+        border-radius: 0.45rem;
+        padding: 0.65rem 0.85rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.65rem;
+
+        .star-letter {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba($accent, 0.15);
+            color: $accent;
+            font-size: 0.72rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .star-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+
+            strong {
+                font-size: 0.72rem;
+                font-weight: 700;
+                color: $text-muted;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+            }
+
+            p {
+                font-size: 0.825rem;
+                color: #c9d1d9;
+                line-height: 1.45;
+                margin: 0;
+            }
+        }
+    }
+
+    // 🔄 Progressive Follow-ups List
+    &__followup-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+
+        li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.65rem;
+            font-size: 0.835rem;
+            color: #c9d1d9;
+            line-height: 1.5;
+        }
+
+        .followup-num {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(#58a6ff, 0.15);
+            color: #58a6ff;
+            font-size: 0.68rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .followup-text {
+            flex: 1;
+        }
+    }
+
+    // 📚 Resources Tags
+    &__resource-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+
+        .resource-pill {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #58a6ff;
+            background: rgba(#58a6ff, 0.1);
+            border: 1px solid rgba(#58a6ff, 0.25);
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.35rem;
+        }
+    }
+
+    &__tag {
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 0.15rem 0.5rem;
+        border-radius: 0.25rem;
+        width: fit-content;
+
+        &--intention {
+            color: #a78bfa;
+            background-color: rgba(#a78bfa, 0.1);
+            border: 1px solid rgba(#a78bfa, 0.2);
+        }
+
+        &--explanation {
+            color: #79c0ff;
+            background-color: rgba(#79c0ff, 0.1);
+            border: 1px solid rgba(#79c0ff, 0.2);
+        }
+
+        &--example {
+            color: #7ee787;
+            background-color: rgba(#7ee787, 0.1);
+            border: 1px solid rgba(#7ee787, 0.2);
+        }
+
+        &--realworld {
+            color: #d2a8ff;
+            background-color: rgba(#d2a8ff, 0.1);
+            border: 1px solid rgba(#d2a8ff, 0.2);
+        }
+
+        &--answer {
+            color: #3fb950;
+            background-color: rgba(#3fb950, 0.1);
+            border: 1px solid rgba(#3fb950, 0.2);
+        }
+
+        &--mistakes {
+            color: $severity-high;
+            background-color: rgba($severity-high, 0.1);
+            border: 1px solid rgba($severity-high, 0.2);
+        }
+
+        &--followup {
+            color: #58a6ff;
+            background-color: rgba(#58a6ff, 0.1);
+            border: 1px solid rgba(#58a6ff, 0.2);
+        }
+
+        &--resources {
+            color: $severity-medium;
+            background-color: rgba($severity-medium, 0.1);
+            border: 1px solid rgba($severity-medium, 0.2);
+        }
+    }
+}
+
+// ── Road Map ──────────────────────────────────────────────────────────────────
+.roadmap-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+
+    // vertical timeline line
+    &::before {
+        content: '';
+        position: absolute;
+        left: 28px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, $accent, rgba($accent, 0.1));
+        border-radius: 1px;
+    }
+}
+
+.roadmap-day {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 0 0.75rem 3.5rem;
+    position: relative;
+
+    // dot on timeline
+    &::before {
+        content: '';
+        position: absolute;
+        left: 21px;
+        top: 1.05rem;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background-color: $bg-card;
+        border: 2px solid $accent;
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    &__badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: $accent;
+        background-color: rgba($accent, 0.1);
+        border: 1px solid rgba($accent, 0.25);
+        padding: 0.1rem 0.5rem;
+        border-radius: 2rem;
+    }
+
+    &__focus {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: $text-primary;
+    }
+
+    &__tasks {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+
+        li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            font-size: 0.845rem;
+            color: #9da7b8;
+            line-height: 1.5;
+        }
+    }
+
+    &__bullet {
+        flex-shrink: 0;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background-color: $text-muted;
+        margin-top: 8px;
+    }
+}
+
+// ── Right Sidebar ─────────────────────────────────────────────────────────────
+.interview-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    padding: 1.75rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.sidebar-divider {
+    height: 1px;
+    background-color: $border-color;
+}
+
+// Match Score
+.match-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+
+    &__label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: $text-muted;
+        margin: 0;
+        align-self: flex-start;
+    }
+
+    &__ring {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid;
+
+        &.score--high {
+            border-color: $severity-low;
+        }
+
+        &.score--mid {
+            border-color: $severity-medium;
+        }
+
+        &.score--low {
+            border-color: $severity-high;
+        }
+    }
+
+    &__value {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: $text-primary;
+        line-height: 1;
+    }
+
+    &__pct {
+        font-size: 0.75rem;
+        color: $text-muted;
+        margin-top: -2px;
+    }
+
+    &__sub {
+        margin: 0;
+        font-size: 0.75rem;
+        color: $severity-low;
+        text-align: center;
+    }
+}
+
+// Skill Gaps
+.skill-gaps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    &__label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: $text-muted;
+        margin: 0;
+    }
+
+    &__list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+}
+
+.skill-tag {
+    font-size: 0.775rem;
+    font-weight: 500;
+    padding: 0.3rem 0.7rem;
+    border-radius: 0.4rem;
+    border: 1px solid;
+    cursor: default;
+
+    &--high {
+        color: $severity-high;
+        background-color: rgba($severity-high, 0.1);
+        border-color: rgba($severity-high, 0.25);
+    }
+
+    &--medium {
+        color: $severity-medium;
+        background-color: rgba($severity-medium, 0.1);
+        border-color: rgba($severity-medium, 0.25);
+    }
+
+    &--low {
+        color: $severity-low;
+        background-color: rgba($severity-low, 0.1);
+        border-color: rgba($severity-low, 0.25);
+    }
+}
+
+// ── Difficulty Badge ──────────────────────────────────────────────────────────
+.diff-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.12rem 0.5rem;
+    border-radius: 0.3rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+
+    &--easy {
+        color: $severity-low;
+        background-color: rgba($severity-low, 0.1);
+        border: 1px solid rgba($severity-low, 0.2);
+    }
+
+    &--medium {
+        color: $severity-medium;
+        background-color: rgba($severity-medium, 0.1);
+        border: 1px solid rgba($severity-medium, 0.2);
+    }
+
+    &--hard {
+        color: $severity-high;
+        background-color: rgba($severity-high, 0.1);
+        border: 1px solid rgba($severity-high, 0.2);
+    }
+}
+
+// ── Question Card Extras ──────────────────────────────────────────────────────
+.q-card__category {
+    font-size: 0.68rem;
+    color: $text-muted;
+    background: $bg-input;
+    padding: 0.12rem 0.5rem;
+    border-radius: 0.3rem;
+    border: 1px solid $border-color;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.q-card__time {
+    font-size: 0.68rem;
+    color: $text-muted;
+    flex-shrink: 0;
+    margin-top: 3px;
+}
+
+.q-card__section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.q-card__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    li {
+        font-size: 0.835rem;
+        color: #a8b3cf;
+        line-height: 1.5;
+        padding-left: 1rem;
+        position: relative;
+
+        &::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: $accent;
+        }
+    }
+}
+
+// ── Copy Button ───────────────────────────────────────────────────────────────
+.copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.6rem;
+    background: $bg-input;
+    border: 1px solid $border-color;
+    border-radius: 0.3rem;
+    color: $text-muted;
+    font-size: 0.72rem;
+    font-family: $font-stack;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+        color: $text-primary;
+        border-color: $accent;
+    }
+}
+
+// ── Overview Tab Content ───────────────────────────────────────────────────────
+.overview-tab-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+// ── Overview Hero Card ────────────────────────────────────────────────────────
+.overview-hero-card {
+    background: $bg-panel;
+    border: 1px solid $border-color;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.overview-hero-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.overview-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0 0 0.25rem 0;
+}
+
+.overview-company {
+    font-size: 0.9rem;
+    color: $text-muted;
+    margin: 0;
+}
+
+.overview-score-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba($accent, 0.1);
+    border: 1px solid rgba($accent, 0.3);
+    border-radius: 2rem;
+    padding: 0.35rem 0.85rem;
+    flex-shrink: 0;
+
+    .score-num {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: $accent;
+    }
+
+    .score-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: $text-primary;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+}
+
+// ── Target Track Panel (Compact & Collapsible) ────────────────────────────────
+.target-track-panel {
+    background: rgba($bg-page, 0.6);
+    border: 1px solid $border-color;
+    border-radius: 0.6rem;
+    padding: 0.85rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.target-track-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.target-track-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.target-track-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: $accent;
+    background: rgba($accent, 0.12);
+    border: 1px solid rgba($accent, 0.25);
+    padding: 0.15rem 0.45rem;
+    border-radius: 0.25rem;
+    letter-spacing: 0.06em;
+}
+
+.target-track-role {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: $text-primary;
+    margin: 0;
+}
+
+.view-role-details-btn {
+    background: none;
+    border: 1px solid rgba($accent, 0.3);
+    color: $accent;
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: $font-stack;
+    padding: 0.25rem 0.65rem;
+    border-radius: 0.35rem;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+        background: rgba($accent, 0.1);
+        border-color: $accent;
+    }
+}
+
+.role-details-drawer {
+    background: $bg-input;
+    border: 1px solid $border-color;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+
+    h4 {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: $text-muted;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0;
+    }
+
+    .role-details-text {
+        font-size: 0.825rem;
+        color: #a8b3cf;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        max-height: 260px;
+        overflow-y: auto;
+    }
+}
+
+.overview-summary-text {
+    font-size: 0.9rem;
+    color: #a8b3cf;
+    line-height: 1.65;
+    margin: 0;
+}
+
+// ── Score Explanation Card ────────────────────────────────────────────────────
+.score-explanation-card {
+    background: $bg-panel;
+    border: 1px solid $border-color;
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .card-section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+
+        h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: $text-primary;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 0;
+        }
+
+        .score-exp-badge {
+            font-size: 0.75rem;
+            color: $text-muted;
+            background: $bg-input;
+            border: 1px solid $border-color;
+            padding: 0.15rem 0.5rem;
+            border-radius: 1rem;
+        }
+    }
+
+    .score-explanation__reasoning {
+        font-size: 0.875rem;
+        color: #a8b3cf;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .score-explanation__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+
+    .score-exp-col {
+        background: rgba($bg-page, 0.5);
+        border: 1px solid $border-color;
+        border-radius: 0.5rem;
+        padding: 0.85rem 1rem;
+
+        h5 {
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+
+            li {
+                font-size: 0.8rem;
+                line-height: 1.45;
+                padding-left: 0.85rem;
+                position: relative;
+
+                &::before {
+                    content: "•";
+                    position: absolute;
+                    left: 0;
+                }
+            }
+        }
+
+        &--strengths {
+            border-left: 3px solid $severity-low;
+            h5 { color: $severity-low; }
+            li::before { color: $severity-low; }
+            li { color: #c9d1d9; }
+        }
+
+        &--partial {
+            border-left: 3px solid $severity-medium;
+            h5 { color: $severity-medium; }
+            li::before { color: $severity-medium; }
+            li { color: #c9d1d9; }
+        }
+
+        &--orange {
+            border-left: 3px solid #ff9800;
+            h5 { color: #ff9800; }
+            li::before { color: #ff9800; }
+            li { color: #c9d1d9; }
+        }
+
+        &--gaps {
+            border-left: 3px solid $severity-high;
+            h5 { color: $severity-high; }
+            li::before { color: $severity-high; }
+            li { color: #c9d1d9; }
+        }
+    }
+
+    .score-explanation__summary-box {
+        background: rgba($bg-page, 0.6);
+        border: 1px solid $border-color;
+        border-radius: 0.45rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+        color: #c9d1d9;
+        line-height: 1.55;
+
+        strong {
+            color: $accent;
+            margin-right: 0.35rem;
+        }
+    }
+}
+
+// ── Grouped Requirements Grid (Chips) ─────────────────────────────────────────
+.overview-grouped-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.overview-group-card {
+    background: $bg-panel;
+    border: 1px solid $border-color;
+    border-radius: 0.6rem;
+    padding: 1rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        h4 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: $text-muted;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 0;
+        }
+    }
+
+    &__count {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: $text-muted;
+        background: $bg-input;
+        border: 1px solid $border-color;
+        border-radius: 1rem;
+        padding: 0.1rem 0.45rem;
+    }
+
+    .chip-expand-btn {
+        background: none;
+        border: none;
+        color: $accent;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: $font-stack;
+        cursor: pointer;
+        align-self: flex-start;
+        padding: 0.2rem 0;
+        transition: opacity 0.15s;
+
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+}
+
+// ── Skill Tag Modifiers ───────────────────────────────────────────────────────
+.skill-tag {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.6rem;
+    border-radius: 0.35rem;
+    border: 1px solid;
+    line-height: 1.35;
+    display: inline-block;
+
+    &--orange {
+        color: #ff9800;
+        background-color: rgba(#ff9800, 0.1);
+        border-color: rgba(#ff9800, 0.25);
+    }
+}
+
+// ── 4-Tier Skill Classification Section ───────────────────────────────────────
+.skill-classification-section {
+    background: $bg-panel;
+    border: 1px solid $border-color;
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.classification-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: $text-primary;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .section-subtext {
+        font-size: 0.8rem;
+        color: $text-muted;
+        margin: 0;
+    }
+}
+
+.view-toggle-btns {
+    display: flex;
+    background: $bg-input;
+    border: 1px solid $border-color;
+    border-radius: 0.4rem;
+    overflow: hidden;
+
+    .view-btn {
+        background: none;
+        border: none;
+        color: $text-muted;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: $font-stack;
+        padding: 0.3rem 0.75rem;
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &:hover {
+            color: $text-primary;
+        }
+
+        &--active {
+            background: $accent;
+            color: #fff;
+        }
+    }
+}
+
+.classification-filters {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.filter-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: $bg-input;
+    border: 1px solid $border-color;
+    border-radius: 2rem;
+    padding: 0.25rem 0.65rem;
+    color: $text-muted;
+    font-size: 0.75rem;
+    font-family: $font-stack;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+        border-color: rgba($accent, 0.5);
+        color: $text-primary;
+    }
+
+    &--active {
+        background: rgba($accent, 0.12);
+        border-color: $accent;
+        color: $accent;
+        font-weight: 600;
+    }
+
+    .filter-pill-count {
+        font-size: 0.68rem;
+        font-weight: 700;
+        opacity: 0.8;
+    }
+}
+
+// ── Evidence Toggle Button (Compact & Clean) ──────────────────────────────────
+.evidence-toggle-btn {
+    background: none;
+    border: 1px solid rgba($accent, 0.3);
+    color: $accent;
+    font-size: 0.68rem;
+    font-weight: 600;
+    font-family: $font-stack;
+    padding: 0.1rem 0.45rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-left: auto;
+
+    &:hover {
+        background: rgba($accent, 0.12);
+        border-color: $accent;
+    }
+
+    &--active {
+        background: rgba($accent, 0.2);
+        border-color: $accent;
+    }
+}
+
+// ── Cards View ────────────────────────────────────────────────────────────────
+.skill-classification-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.85rem;
+}
+
+.skill-class-card {
+    background: rgba($bg-page, 0.6);
+    border: 1px solid $border-color;
+    border-radius: 0.5rem;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: border-color 0.15s;
+
+    &:hover {
+        border-color: rgba($accent, 0.4);
+    }
+
+    &__top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    &__name {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: $text-primary;
+        line-height: 1.4;
+        word-break: break-word;
+        white-space: normal;
+    }
+
+    &__meta {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    &__type {
+        font-size: 0.65rem;
+        color: $text-muted;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: $bg-input;
+        border: 1px solid $border-color;
+        padding: 0.1rem 0.35rem;
+        border-radius: 0.2rem;
+    }
+
+    &__evidence-box {
+        background: rgba($bg-input, 0.8);
+        border: 1px solid rgba($border-color, 0.8);
+        border-radius: 0.35rem;
+        padding: 0.55rem 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        margin-top: 0.25rem;
+        animation: fadeIn 0.15s ease-in-out;
+
+        .evidence-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: $text-muted;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        p {
+            font-size: 0.78rem;
+            color: #c9d1d9;
+            line-height: 1.45;
+            margin: 0;
+            word-break: break-word;
+        }
+    }
+
+    &--present { border-left: 3px solid $severity-low; }
+    &--partially-demonstrated { border-left: 3px solid $severity-medium; }
+    &--not-demonstrated { border-left: 3px solid #ff9800; }
+    &--missing { border-left: 3px solid $severity-high; }
+}
+
+// ── Table View ────────────────────────────────────────────────────────────────
+.classification-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid $border-color;
+    border-radius: 0.5rem;
+}
+
+.classification-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.825rem;
+    text-align: left;
+
+    th {
+        background: $bg-input;
+        color: $text-muted;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-size: 0.72rem;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid $border-color;
+    }
+
+    td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid rgba($border-color, 0.5);
+        vertical-align: middle;
+    }
+
+    tr:hover td {
+        background: rgba($bg-input, 0.4);
+    }
+
+    .table-req-name {
+        font-weight: 600;
+        color: $text-primary;
+        max-width: 280px;
+        word-break: break-word;
+        line-height: 1.4;
+    }
+
+    .table-type-badge {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        color: $text-muted;
+        background: $bg-input;
+        border: 1px solid $border-color;
+        padding: 0.15rem 0.4rem;
+        border-radius: 0.2rem;
+        white-space: nowrap;
+    }
+
+    .table-evidence-cell {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .table-evidence-row td {
+        background: rgba($bg-page, 0.6);
+        padding: 0.5rem 1rem 0.75rem;
+        border-bottom: 1px solid $border-color;
+    }
+
+    .table-evidence-box {
+        font-size: 0.8rem;
+        color: #c9d1d9;
+        line-height: 1.5;
+        background: rgba($bg-input, 0.6);
+        border: 1px solid $border-color;
+        border-radius: 0.35rem;
+        padding: 0.5rem 0.75rem;
+
+        strong {
+            color: $text-muted;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            margin-right: 0.4rem;
+        }
+    }
+}
+
+// ── Status Badges ─────────────────────────────────────────────────────────────
+.status-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.12rem 0.45rem;
+    border-radius: 0.25rem;
+    flex-shrink: 0;
+    white-space: nowrap;
+
+    &--present {
+        color: $severity-low;
+        background: rgba($severity-low, 0.12);
+        border: 1px solid rgba($severity-low, 0.25);
+    }
+
+    &--partially-demonstrated {
+        color: $severity-medium;
+        background: rgba($severity-medium, 0.12);
+        border: 1px solid rgba($severity-medium, 0.25);
+    }
+
+    &--not-demonstrated {
+        color: #ff9800;
+        background: rgba(#ff9800, 0.12);
+        border: 1px solid rgba(#ff9800, 0.25);
+    }
+
+    &--missing {
+        color: $severity-high;
+        background: rgba($severity-high, 0.12);
+        border: 1px solid rgba($severity-high, 0.25);
+    }
+}
+
+// ── Next Steps Card ───────────────────────────────────────────────────────────
+.next-steps-card {
+    background: $bg-panel;
+    border: 1px solid $border-color;
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+
+    h4 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: $text-primary;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0;
+    }
+
+    .next-steps-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+
+        li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            font-size: 0.84rem;
+            color: #c9d1d9;
+            line-height: 1.5;
+        }
+
+        .next-step-num {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba($accent, 0.15);
+            color: $accent;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+    }
+}
+
+
+// ── MCQ Section ───────────────────────────────────────────────────────────────
+.mcq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.mcq-card {
+    background-color: $bg-panel;
+    border: 1px solid $border-color;
+    border-radius: 0.65rem;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: all 0.2s ease;
+
+    &--correct {
+        border-color: rgba($severity-low, 0.5);
+        background: linear-gradient(180deg, $bg-panel 0%, rgba($severity-low, 0.04) 100%);
+    }
+
+    &--incorrect {
+        border-color: rgba($severity-high, 0.5);
+        background: linear-gradient(180deg, $bg-panel 0%, rgba($severity-high, 0.04) 100%);
+    }
+
+    &__header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    &__meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    &__question {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: $text-primary;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    &__options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    &__footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding-top: 0.25rem;
+    }
+
+    &__result {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    &__explanation {
+        background: rgba($bg-page, 0.6);
+        border: 1px solid $border-color;
+        border-radius: 0.5rem;
+        padding: 0.85rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+
+        p {
+            font-size: 0.835rem;
+            color: #a8b3cf;
+            line-height: 1.6;
+            margin: 0;
+        }
+    }
+
+    &__resource {
+        font-size: 0.78rem !important;
+        color: $text-muted !important;
+        margin-top: 0.25rem !important;
+
+        strong {
+            color: $accent;
+        }
+    }
+}
+
+.mcq-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    background: $bg-input;
+    border: 1px solid $border-color;
+    border-radius: 0.5rem;
+    color: $text-primary;
+    font-family: $font-stack;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+        border-color: $accent;
+        background: rgba($accent, 0.05);
+    }
+
+    &__letter {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        background: rgba($text-muted, 0.15);
+        color: $text-muted;
+        flex-shrink: 0;
+        transition: all 0.15s;
+    }
+
+    &__text {
+        flex: 1;
+        line-height: 1.4;
+    }
+
+    &__badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.15rem 0.45rem;
+        border-radius: 0.25rem;
+        color: $severity-low;
+        background: rgba($severity-low, 0.15);
+        flex-shrink: 0;
+
+        &--wrong {
+            color: $severity-high;
+            background: rgba($severity-high, 0.15);
+        }
+    }
+
+    &--selected {
+        border-color: $accent;
+        background: rgba($accent, 0.1);
+
+        .mcq-option__letter {
+            background: $accent;
+            color: #fff;
+        }
+    }
+
+    &--correct {
+        border-color: $severity-low !important;
+        background: rgba($severity-low, 0.1) !important;
+        cursor: default;
+
+        .mcq-option__letter {
+            background: $severity-low !important;
+            color: #fff !important;
+        }
+    }
+
+    &--wrong {
+        border-color: $severity-high !important;
+        background: rgba($severity-high, 0.1) !important;
+        cursor: default;
+
+        .mcq-option__letter {
+            background: $severity-high !important;
+            color: #fff !important;
+        }
+    }
+}
+
+.mcq-submit-btn {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.825rem;
+    border-radius: 0.4rem;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.mcq-reset-btn {
+    background: none;
+    border: 1px solid $border-color;
+    color: $text-muted;
+    padding: 0.35rem 0.85rem;
+    border-radius: 0.35rem;
+    font-family: $font-stack;
+    font-size: 0.78rem;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: all 0.15s;
+
+    &:hover {
+        border-color: $accent;
+        color: $text-primary;
+    }
+}

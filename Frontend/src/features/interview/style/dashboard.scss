@@ -1,0 +1,346 @@
+$bg-page: #0d1117;
+$bg-card: #161b22;
+$bg-panel: #1c2230;
+$bg-input: #1e2535;
+$border-color: #2a3348;
+$text-primary: #e6edf3;
+$text-muted: #7d8590;
+$accent: #ff2d78;
+$font-stack: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+.dashboard-page {
+    background-color: $bg-page;
+    min-height: 100vh;
+    color: $text-primary;
+    font-family: $font-stack;
+    padding: 2rem;
+
+    .page-header {
+        margin-bottom: 2rem;
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+
+            h1 {
+                font-size: 2rem;
+                margin: 0 0 0.5rem 0;
+            }
+
+            .highlight {
+                color: $accent;
+            }
+
+            p {
+                color: $text-muted;
+                margin: 0;
+            }
+
+            .header-actions {
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+
+                .nav-link {
+                    color: $text-primary;
+                    text-decoration: none;
+                    font-weight: 500;
+                    padding: 0.5rem 1rem;
+                    border-radius: 4px;
+                    transition: background-color 0.2s;
+                    border: 1px solid $border-color;
+                    
+                    &:hover {
+                        background-color: $bg-panel;
+                    }
+                }
+
+                .logout-btn {
+                    background-color: transparent;
+                    color: $accent;
+                    border: 1px solid $accent;
+                    padding: 0.5rem 1rem;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: 500;
+                    transition: all 0.2s;
+
+                    &:hover {
+                        background-color: $accent;
+                        color: white;
+                    }
+                }
+            }
+        }
+    }
+
+    .dashboard-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+
+            .stat-card {
+                background-color: $bg-card;
+                border: 1px solid $border-color;
+                border-radius: 8px;
+                padding: 1.5rem;
+                text-align: center;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+                h3 {
+                    margin: 0 0 0.5rem 0;
+                    font-size: 1rem;
+                    color: $text-muted;
+                    font-weight: 500;
+                }
+
+                .stat-value {
+                    font-size: 2rem;
+                    font-weight: 700;
+                    color: $accent;
+                }
+            }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+
+            .dashboard-panel {
+                background-color: $bg-card;
+                border: 1px solid $border-color;
+                border-radius: 8px;
+                padding: 1.5rem;
+
+                h2 {
+                    margin: 0 0 1.5rem 0;
+                    font-size: 1.2rem;
+                    border-bottom: 1px solid $border-color;
+                    padding-bottom: 0.75rem;
+                }
+            }
+
+            .chart-panel {
+                .bar-chart {
+                    display: flex;
+                    justify-content: space-around;
+                    align-items: flex-end;
+                    height: 200px;
+                    padding-top: 2rem;
+
+                    .bar-container {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        height: 100%;
+                        justify-content: flex-end;
+                        width: 40px;
+
+                        .bar-value {
+                            font-size: 0.8rem;
+                            color: $text-muted;
+                            margin-bottom: 0.5rem;
+                        }
+
+                        .bar {
+                            width: 100%;
+                            background-color: $accent;
+                            border-radius: 4px 4px 0 0;
+                            min-height: 2px;
+                            transition: height 0.3s ease;
+                        }
+
+                        .bar-label {
+                            font-size: 0.8rem;
+                            margin-top: 0.5rem;
+                            color: $text-muted;
+                        }
+                    }
+                }
+            }
+
+            .skills-panel {
+                .skills-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.75rem;
+
+                    .skill-item {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        background-color: $bg-panel;
+                        padding: 0.75rem 1rem;
+                        border-radius: 4px;
+
+                        .skill-name {
+                            font-weight: 500;
+                        }
+
+                        .skill-count {
+                            background-color: $bg-input;
+                            padding: 0.2rem 0.6rem;
+                            border-radius: 12px;
+                            font-size: 0.8rem;
+                        }
+                        
+                        &.strong .skill-count {
+                            color: #4ade80;
+                        }
+                        
+                        &.weak .skill-count {
+                            color: #f87171;
+                        }
+                    }
+                }
+            }
+        }
+
+        .reports-panel {
+            background-color: $bg-card;
+            border: 1px solid $border-color;
+            border-radius: 8px;
+            padding: 1.5rem;
+
+            .reports-header {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+                gap: 1rem;
+
+                h2 {
+                    margin: 0;
+                    font-size: 1.5rem;
+                }
+
+                .reports-controls {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 1rem;
+
+                    input, select {
+                        background-color: $bg-input;
+                        border: 1px solid $border-color;
+                        color: $text-primary;
+                        padding: 0.5rem 1rem;
+                        border-radius: 4px;
+                        font-family: inherit;
+                        outline: none;
+
+                        &:focus {
+                            border-color: $accent;
+                        }
+                    }
+
+                    .search-input {
+                        min-width: 250px;
+                    }
+                }
+            }
+
+            .reports-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 1.5rem;
+
+                .report-card {
+                    background-color: $bg-panel;
+                    border: 1px solid $border-color;
+                    border-radius: 8px;
+                    padding: 1.25rem;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+
+                    &:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                        border-color: $accent;
+                    }
+
+                    .report-card-main {
+                        h3 {
+                            margin: 0 0 0.5rem 0;
+                            font-size: 1.1rem;
+                        }
+
+                        .company {
+                            color: $text-muted;
+                            margin: 0 0 0.25rem 0;
+                            font-size: 0.9rem;
+                        }
+
+                        .date {
+                            color: $text-muted;
+                            margin: 0;
+                            font-size: 0.8rem;
+                        }
+                    }
+
+                    .report-card-score {
+                        .score-circle {
+                            width: 60px;
+                            height: 60px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            background-color: $bg-input;
+                            border: 2px solid $accent;
+                            font-weight: bold;
+                            color: $accent;
+                        }
+                    }
+                }
+
+                .no-results {
+                    grid-column: 1 / -1;
+                    text-align: center;
+                    padding: 3rem;
+                    color: $text-muted;
+                    background-color: $bg-panel;
+                    border-radius: 8px;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-page {
+        padding: 1rem;
+
+        .dashboard-content {
+            .reports-panel {
+                .reports-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+
+                    .reports-controls {
+                        width: 100%;
+                        flex-direction: column;
+
+                        input, select {
+                            width: 100%;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
