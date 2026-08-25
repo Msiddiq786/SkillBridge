@@ -2,12 +2,17 @@ const PracticeSession = require("../models/practiceSession.model");
 const InterviewReport = require("../models/interviewReport.model");
 const { evaluateTechnicalAnswer, evaluateBehavioralAnswer } = require("./ai/generators/answerEvaluator");
 
-function getRequiredCount(mode) {
+function getRequiredCount(mode, report = null) {
+    const plan = report?.planConfig;
+    const techCount = plan?.technicalCount ?? report?.technicalQuestions?.length ?? 20;
+    const mcqCount = plan?.mcqCount ?? report?.mcqQuestions?.length ?? 15;
+    const behCount = plan?.behavioralCount ?? report?.behavioralQuestions?.length ?? 10;
+
     switch (mode) {
-        case "technical": return 20;
-        case "mcq": return 15;
-        case "behavioral": return 10;
-        case "mixed": return 45;
+        case "technical": return techCount;
+        case "mcq": return mcqCount;
+        case "behavioral": return behCount;
+        case "mixed": return techCount + mcqCount + behCount;
         default: return 0;
     }
 }
@@ -69,7 +74,7 @@ async function startOrGetPracticeSession({ userId, interviewReportId, mode }) {
     }
 
     const attemptedCount = countAttemptedQuestions(session);
-    const requiredCount = getRequiredCount(session.mode);
+    const requiredCount = getRequiredCount(session.mode, report);
 
     return {
         session,
@@ -95,7 +100,7 @@ async function getPracticeSessionById({ userId, sessionId }) {
     }
 
     const attemptedCount = countAttemptedQuestions(session);
-    const requiredCount = getRequiredCount(session.mode);
+    const requiredCount = getRequiredCount(session.mode, report);
 
     return {
         session,
@@ -278,19 +283,10 @@ async function completeSession({ userId, sessionId }) {
         throw new Error("Practice session not found or unauthorized");
     }
 
-    const requiredCount = getRequiredCount(session.mode);
+    const report = await InterviewReport.findOne({ _id: session.interviewReport, user: userId });
+    const requiredCount = getRequiredCount(session.mode, report);
     const attemptedCount = countAttemptedQuestions(session);
 
-    if (attemptedCount < requiredCount) {
-        const error = new Error(`Cannot complete practice session early. ${attemptedCount} of ${requiredCount} questions attempted.`);
-        error.statusCode = 400;
-        error.attemptedCount = attemptedCount;
-        error.requiredCount = requiredCount;
-        error.remainingCount = requiredCount - attemptedCount;
-        throw error;
-    }
-
-    const report = await InterviewReport.findOne({ _id: session.interviewReport, user: userId });
     const roadmap = report?.preparationPlan || [];
 
     // Calculate topic performances

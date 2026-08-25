@@ -27,6 +27,13 @@ interviewRouter.post("/", authMiddleware.authUser, upload.single("resume"), inte
 interviewRouter.get("/report/:interviewId", authMiddleware.authUser, interviewController.getInterviewReportByIdController);
 
 /**
+ * @route POST /api/interview/report/:interviewId/ats-retry
+ * @description Retry or on-demand generate ATS analysis
+ * @access private
+ */
+interviewRouter.post("/report/:interviewId/ats-retry", authMiddleware.authUser, interviewController.retryAtsAnalysisController);
+
+/**
  * @route GET /api/interview/
  * @description Get all interview reports
  * @access private

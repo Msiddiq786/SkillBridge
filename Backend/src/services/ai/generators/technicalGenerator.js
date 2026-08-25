@@ -3,8 +3,12 @@ const { generateJson, MODELS } = require("../genai.client");
 const { technicalQuestionSchema } = require("../schemas");
 const { buildTechnicalQuestionsPrompt } = require("../prompts/technical.prompt");
 
-async function generateTechnicalQuestions({ summary, jobDescription, selectedTrack }) {
-    const prompt = buildTechnicalQuestionsPrompt({ summary, jobDescription, selectedTrack });
+async function generateTechnicalQuestions({ summary, jobDescription, selectedTrack, planConfig }) {
+    if (planConfig?.includeTechnical === false || planConfig?.technicalCount === 0) {
+        return { technicalQuestions: [] };
+    }
+
+    const prompt = buildTechnicalQuestionsPrompt({ summary, jobDescription, selectedTrack, planConfig });
 
     const response = await generateJson({
         model: MODELS.FAST,

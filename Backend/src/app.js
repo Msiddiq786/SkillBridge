@@ -15,10 +15,16 @@ app.use(cookieParser());
 
 const authRouter = require("./routes/auth.routes");
 const interviewRouter = require("./routes/interview.routes");
-const progressRouter = require("./routes/progress.routes"); // or progress.routes
+const progressRouter = require("./routes/progress.routes");
+const practiceRouter = require("./routes/practice.routes");
+const profileRouter = require("./routes/profile.routes");
+const journeyRouter = require("./routes/journey.routes");
 
 app.use("/api/auth", authRouter);
 app.use("/api/interview", interviewRouter);
 app.use("/api/progress", progressRouter);
+app.use("/api/practice", practiceRouter);
+app.use("/api/profile", profileRouter);
+app.use("/api/journey", journeyRouter);
 
 module.exports = app;

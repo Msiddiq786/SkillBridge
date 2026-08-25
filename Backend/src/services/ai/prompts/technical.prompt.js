@@ -1,16 +1,28 @@
 const { REPORT } = require("../../../config/ai.config");
 
-function buildTechnicalQuestionsPrompt({ summary, jobDescription, selectedTrack }) {
+function buildTechnicalQuestionsPrompt({ summary, jobDescription, selectedTrack, planConfig }) {
     const trackContext = selectedTrack
         ? `\nSelected Track: ${selectedTrack}\nFocus ALL questions strictly on this specific role's technology stack and core domain.`
         : "";
 
-    return `You are an expert AI Technical Interview Coach.
+    const count = typeof planConfig?.technicalCount === 'number' ? planConfig.technicalCount : REPORT.TECHNICAL_QUESTION_COUNT;
+    const easy = typeof planConfig?.technicalDifficulty?.easy === 'number' ? planConfig.technicalDifficulty.easy : Math.round(count * 0.35);
+    const medium = typeof planConfig?.technicalDifficulty?.medium === 'number' ? planConfig.technicalDifficulty.medium : Math.round(count * 0.4);
+    const hard = typeof planConfig?.technicalDifficulty?.hard === 'number' ? planConfig.technicalDifficulty.hard : Math.max(0, count - easy - medium);
+    const followUps = typeof planConfig?.technicalFollowUpsPerQuestion === 'number' ? planConfig.technicalFollowUpsPerQuestion : REPORT.TECHNICAL_FOLLOWUP_COUNT;
+    const focusTopics = Array.isArray(planConfig?.focusAreas) && planConfig.focusAreas.length > 0
+        ? `\nPRIORITY CANDIDATE FOCUS TOPICS:\nPrioritize generating questions covering: ${planConfig.focusAreas.join(", ")} (while remaining strictly grounded in the target JD).\n`
+        : "";
 
-Your job is NOT just to test the candidate, but to TEACH them how to understand concepts and answer naturally in real tech interviews.
+    return `You are an expert AI Technical Interview Coach designed for beginners and students preparing for their first interviews.
 
-CORE TEACHING METHODOLOGY:
-UNDERSTAND → EXAMPLE → APPLY → SPEAK
+LANGUAGE & TEACHING RULES:
+- Use VERY SIMPLE, PLAIN ENGLISH.
+- Write as if explaining step-by-step to a student preparing for their very first interview.
+- Avoid academic language, overly complex terminology, giant walls of text, and unexplained jargon.
+- Use simple analogies and intuitive explanations.
+- Follow the exact 10-step learning formula for each question:
+  Question → One-Line Answer → Simple Explanation → Easy Example → Real-World Example → How to Say It in Interview → Common Mistakes → Progressive Follow-Ups → Quick Memory Tip → Resources.
 
 ═══════════════════════════════════════
 CANDIDATE SUMMARY
@@ -20,47 +32,37 @@ ${summary}
 ═══════════════════════════════════════
 TARGET JOB DESCRIPTION
 ═══════════════════════════════════════
-${jobDescription}${trackContext}
+${jobDescription}${trackContext}${focusTopics}
 
 ═══════════════════════════════════════
 INSTRUCTIONS
 ═══════════════════════════════════════
 
-Generate exactly ${REPORT.TECHNICAL_QUESTION_COUNT} technical interview questions as a JSON array.
+Generate exactly ${count} technical interview questions as a JSON array.
 
 Difficulty distribution:
-- 7 Easy
-- 8 Medium
-- 5 Hard
-
-LANGUAGE & CLARITY RULES:
-- Use simple, plain English. Avoid textbook/academic jargon.
-- One main concept per question. Do not combine multiple difficult ideas into one question.
-- "Easy" must be genuinely beginner-friendly (e.g. "What is the difference between a list and a tuple?").
-- Do NOT invent candidate experiences or metrics.
+- ${easy} Easy (simple core concepts)
+- ${medium} Medium (concept + practical application)
+- ${hard} Hard (concept + trade-off + deeper reasoning)
+(Note: Difficulty affects the technical depth of the concept, NOT language complexity. ALL explanations must remain in very simple English!)
 
 Each element in the array must be a JSON object with these EXACT fields:
 
-1. "question" — simple, natural question as a real interviewer would ask it.
+1. "question" — clear, beginner-friendly question as an interviewer would ask it (e.g. "What is the difference between a list and a tuple in Python?").
 2. "difficulty" — exactly "Easy", "Medium", or "Hard".
 3. "category" — technology area (e.g. "Python Basics", "React Hooks", "REST APIs", "SQL Queries").
-4. "estimatedInterviewTime" — e.g. "3-5 minutes".
-5. "intention" — 1 simple sentence explaining what the interviewer is evaluating.
-6. "oneLineAnswer" — ⭐ 1 clear, punchy sentence giving the direct answer.
-7. "simpleExplanation" — 🧠 beginner-friendly explanation in 2-3 short sentences. Focus on intuition (e.g. List = changeable, Tuple = fixed).
-8. "easyExample" — 💡 small beginner code snippet or simple scenario demonstrating the concept clearly.
-9. "realWorldExample" — 🌍 1-2 sentences showing where and why this is used in actual software projects.
-10. "interviewAnswer" — 🗣️ conversational, natural answer the candidate can easily speak aloud in an interview (2-4 sentences, no robotic textbook language).
-11. "commonMistakes" — array of 2-3 concise candidate pitfalls.
-12. "followUpQuestions" — array of EXACTLY 5 progressive follow-up questions:
-    (1) Basic clarification
-    (2) Simple example
-    (3) Practical usage
-    (4) Deeper concept
-    (5) Interview-level extension
-13. "resources" — array of 2-4 concise, high-quality learning resources (e.g. "Official Documentation", "MDN Web Docs", "GeeksforGeeks", "Roadmap.sh").
+4. "estimatedInterviewTime" — e.g. "3–5 minutes".
+5. "oneLineAnswer" — ⭐ ONE clear, simple sentence giving the direct answer first (e.g. "Lists can be changed after creation, while tuples cannot.").
+6. "simpleExplanation" — 💡 Beginner-friendly explanation in 3–5 short sentences using simple analogies (e.g. "A list is like a notebook where you can add, remove, or change items. A tuple is like a printed sheet where values stay fixed.").
+7. "easyExample" — 🧪 Shortest possible code snippet or minimal demonstration (e.g. "my_list = [1, 2]\nmy_list[0] = 10\n\nmy_tuple = (1, 2)\n# my_tuple[0] = 10 -> Error") followed by a 1-sentence explanation.
+8. "realWorldExample" — 🌍 1 practical real-world scenario showing where to use this (e.g. "Use a list for a shopping cart because items can be added or removed. Use a tuple for fixed coordinates like latitude and longitude.").
+9. "howToSayIt" — 🎤 Natural, conversational spoken answer the student can actually say in an interview (2–3 spoken sentences, never sounding like a memorized textbook).
+10. "commonMistakes" — ⚠ Array of 2–4 concise student mistakes to avoid.
+11. "followUpQuestions" — ➡ Array of EXACTLY ${followUps} progressive follow-up questions ordered strictly from Easy → Medium → Deeper (building logically on the main topic).
+12. "quickMemoryTip" — 🧠 1 very short memory trick (e.g. "List = changeable. Tuple = fixed.").
+13. "resources" — 📚 Array of 1–3 useful learning resources (e.g. ["Python Official Documentation", "Real Python"]).
 
-Ensure each question teaches the candidate thoroughly while keeping the text concise and structured.`;
+Do NOT repeat the same explanations across Answer, Simple Explanation, Real-World Example, and How To Say It. Each section must serve its distinct purpose.`;
 }
 
 module.exports = {

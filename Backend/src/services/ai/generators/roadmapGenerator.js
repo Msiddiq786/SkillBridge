@@ -3,8 +3,8 @@ const { generateJson, MODELS } = require("../genai.client");
 const { roadmapSchema } = require("../schemas");
 const { buildRoadmapPrompt } = require("../prompts/roadmap.prompt");
 
-async function generateRoadmap({ summary, jobDescription, selectedTrack }) {
-    const prompt = buildRoadmapPrompt({ summary, jobDescription, selectedTrack });
+async function generateRoadmap({ resume, summary, jobDescription, selectedTrack, skillClassification, planConfig }) {
+    const prompt = buildRoadmapPrompt({ resume, summary, jobDescription, selectedTrack, skillClassification, planConfig });
 
     const response = await generateJson({
         model: MODELS.FAST,

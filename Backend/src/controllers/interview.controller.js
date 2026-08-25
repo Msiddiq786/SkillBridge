@@ -1,6 +1,7 @@
 const pdfParse = require("pdf-parse");
 const { detectJobTracks, generateInterviewReport, generateAtsReport, generateResumePdf } = require("../services/ai.service");
 const interviewReportModel = require("../models/interviewReport.model");
+const profileService = require("../services/profile.service");
 
 /**
  * Detect tracks in a job description
@@ -34,13 +35,46 @@ async function generateInterViewReportController(req, res) {
 
         const { selfDescription, jobDescription, selectedTrack, selectedTrackTitle } = req.body;
 
+        let planConfig = null;
+        if (req.body.planConfig) {
+            try {
+                planConfig = typeof req.body.planConfig === 'string' ? JSON.parse(req.body.planConfig) : req.body.planConfig;
+            } catch (e) {
+                console.warn("[Interview Controller] Failed to parse planConfig JSON:", e.message);
+            }
+        }
+
+        // Fetch candidate profile for supplemental context & update resumeData
+        let candidateProfileContext = "";
+        try {
+            const { profile } = await profileService.getProfileByUserId(req.user.id);
+            if (profile) {
+                candidateProfileContext = profileService.buildProfilePersonalizationContext(profile);
+                // Update profile resume status
+                await profileService.updateProfileByUserId(req.user.id, {
+                    resumeData: {
+                        fileName: req.file.originalname || "resume.pdf",
+                        uploadedAt: new Date(),
+                        lastAnalyzedAt: new Date(),
+                        parsedTextSnippet: resumeContent.text.slice(0, 500),
+                        status: "Parsed & Analyzed"
+                    }
+                });
+            }
+        } catch (profErr) {
+            console.warn("[Interview Controller] Profile context skipped:", profErr.message);
+        }
+
+        const effectiveSelfDescription = [selfDescription || "", candidateProfileContext].filter(Boolean).join("\n\n");
+
         const { report: interViewReportByAi, resumeAnalysis } = await generateInterviewReport({
             resume: resumeContent.text,
-            selfDescription: selfDescription || "",
+            selfDescription: effectiveSelfDescription,
             jobDescription,
             userId: req.user.id,
             selectedTrack: selectedTrack || null,
-            selectedTrackTitle: selectedTrackTitle || null
+            selectedTrackTitle: selectedTrackTitle || null,
+            planConfig
         });
 
         const interviewReport = await interviewReportModel.create({
@@ -51,7 +85,9 @@ async function generateInterViewReportController(req, res) {
             selectedTrack: selectedTrackTitle || (typeof selectedTrack === 'string' && selectedTrack.length < 80 ? selectedTrack : null) || interViewReportByAi.title,
             selectedTrackTitle: selectedTrackTitle || null,
             selectedTrackDetails: selectedTrack || "",
-            ...interViewReportByAi
+            atsStatus: "ATS_GENERATING",
+            ...interViewReportByAi,
+            planConfig: interViewReportByAi.planConfig || planConfig || undefined
         });
 
         // ATS analysis in background
@@ -62,12 +98,20 @@ async function generateInterViewReportController(req, res) {
         }).then(async (atsResult) => {
             if (atsResult?.atsAnalysis) {
                 await interviewReportModel.findByIdAndUpdate(interviewReport._id, {
+                    atsStatus: "ATS_READY",
                     atsAnalysis: atsResult.atsAnalysis
                 });
                 console.log(`[ATS Background] Completed for report ${interviewReport._id}`);
+            } else {
+                await interviewReportModel.findByIdAndUpdate(interviewReport._id, {
+                    atsStatus: "ATS_FAILED"
+                });
             }
-        }).catch((err) => {
+        }).catch(async (err) => {
             console.error("[ATS Background] Failed:", err.message);
+            await interviewReportModel.findByIdAndUpdate(interviewReport._id, {
+                atsStatus: "ATS_FAILED"
+            });
         });
 
         return res.status(201).json({
@@ -94,6 +138,51 @@ async function getInterviewReportByIdController(req, res) {
 }
 
 /**
+ * Retry ATS analysis on-demand
+ */
+async function retryAtsAnalysisController(req, res) {
+    try {
+        const { interviewId } = req.params;
+        const interviewReport = await interviewReportModel.findOne({ _id: interviewId, user: req.user.id });
+        if (!interviewReport) {
+            return res.status(404).json({ message: "Interview report not found." });
+        }
+
+        await interviewReportModel.findByIdAndUpdate(interviewId, { atsStatus: "ATS_GENERATING" });
+
+        const atsResult = await generateAtsReport({
+            resume: interviewReport.resume,
+            jobDescription: interviewReport.jobDescription,
+            resumeAnalysis: {
+                title: interviewReport.title,
+                summary: interviewReport.summary,
+                skillClassification: interviewReport.skillClassification
+            }
+        });
+
+        if (atsResult?.atsAnalysis) {
+            const updated = await interviewReportModel.findByIdAndUpdate(
+                interviewId,
+                { atsStatus: "ATS_READY", atsAnalysis: atsResult.atsAnalysis },
+                { returnDocument: 'after' }
+            );
+            return res.status(200).json({
+                message: "ATS analysis completed successfully.",
+                atsStatus: "ATS_READY",
+                atsAnalysis: updated.atsAnalysis
+            });
+        } else {
+            await interviewReportModel.findByIdAndUpdate(interviewId, { atsStatus: "ATS_FAILED" });
+            return res.status(500).json({ message: "ATS analysis failed.", atsStatus: "ATS_FAILED" });
+        }
+    } catch (err) {
+        console.error("Retry ATS Error:", err);
+        await interviewReportModel.findByIdAndUpdate(req.params.interviewId, { atsStatus: "ATS_FAILED" });
+        return res.status(500).json({ message: err.message || "Failed to retry ATS analysis.", atsStatus: "ATS_FAILED" });
+    }
+}
+
+/**
  * Get all reports for user
  */
 async function getAllInterviewReportsController(req, res) {
@@ -109,7 +198,10 @@ async function getAllInterviewReportsController(req, res) {
  */
 async function generateResumePdfController(req, res) {
     const { interviewReportId } = req.params;
-    const interviewReport = await interviewReportModel.findById(interviewReportId);
+    const interviewReport = await interviewReportModel.findOne({
+        _id: interviewReportId,
+        user: req.user.id
+    });
     if (!interviewReport) {
         return res.status(404).json({ message: "Interview report not found." });
     }
@@ -126,6 +218,7 @@ module.exports = {
     detectTracksController,
     generateInterViewReportController,
     getInterviewReportByIdController,
+    retryAtsAnalysisController,
     getAllInterviewReportsController,
     generateResumePdfController
 };

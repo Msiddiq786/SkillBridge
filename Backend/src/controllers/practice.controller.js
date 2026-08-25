@@ -156,6 +156,37 @@ async function completeSessionController(req, res) {
             sessionId
         });
 
+        // Record qualifying learning activity for streaks and achievements
+        try {
+            const journeyService = require("../services/journey.service");
+            const modeName = result.session?.mode || "Practice";
+            const timeMins = Math.max(5, Math.round((result.session?.timeSpentSeconds || 0) / 60));
+            const timezone = req.query.timezone || req.headers["x-timezone"] || "UTC";
+
+            await journeyService.recordActivity({
+                userId,
+                activityType: "PRACTICE_COMPLETED",
+                title: `Completed ${modeName.toUpperCase()} Practice (${result.session?.overallScore || 0}% Score)`,
+                detail: `Mode: ${modeName}, Time: ${timeMins} min`,
+                isQualifying: true,
+                activeMinutes: timeMins,
+                timezone
+            });
+
+            // Practice achievements
+            if (modeName === "technical" || modeName === "mixed") {
+                await journeyService.unlockAchievement(userId, "voice_pioneer");
+            }
+            if (modeName === "mcq" && (result.session?.overallScore || 0) >= 70) {
+                await journeyService.unlockAchievement(userId, "quiz_champion");
+            }
+            if (modeName === "behavioral" || modeName === "mixed") {
+                await journeyService.unlockAchievement(userId, "star_storyteller");
+            }
+        } catch (actErr) {
+            console.warn("[Practice] Activity logging skipped:", actErr.message);
+        }
+
         return res.status(200).json({
             message: "Session completed",
             session: result.session,

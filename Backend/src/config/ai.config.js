@@ -27,9 +27,38 @@ const RETRY = {
     TIMEOUT_MS: 45000
 };
 
+const DEFAULT_PLAN_CONFIG = {
+    technicalCount: 20,
+    mcqCount: 15,
+    behavioralCount: 10,
+    technicalFollowUpsPerQuestion: 5,
+    roadmapDays: 15,
+    technicalDifficulty: {
+        easy: 7,
+        medium: 8,
+        hard: 5
+    },
+    mcqDifficulty: {
+        easy: 6,
+        medium: 6,
+        hard: 3
+    },
+    behavioralDifficulty: {
+        easy: 4,
+        medium: 4,
+        hard: 2
+    },
+    includeTechnical: true,
+    includeMCQ: true,
+    includeBehavioral: true,
+    roadmapIntensity: "balanced", // "light" | "balanced" | "intensive"
+    focusAreas: []
+};
+
 module.exports = {
     MODELS,
     MODEL,
     REPORT,
-    RETRY
+    RETRY,
+    DEFAULT_PLAN_CONFIG
 };

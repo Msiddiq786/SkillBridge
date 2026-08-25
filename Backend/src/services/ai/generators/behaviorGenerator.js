@@ -8,11 +8,20 @@ const { buildBehavioralQuestionsPrompt } = require("../prompts/behavior.prompt")
  * Generate Behavioral Interview Questions using FAST model
  */
 async function generateBehavioralQuestions({
-    summary
+    resume,
+    summary,
+    selfDescription,
+    planConfig
 }) {
+    if (planConfig?.includeBehavioral === false || planConfig?.behavioralCount === 0) {
+        return { behavioralQuestions: [] };
+    }
 
     const prompt = buildBehavioralQuestionsPrompt({
-        summary
+        resume,
+        summary,
+        selfDescription,
+        planConfig
     });
 
     const response = await generateJson({

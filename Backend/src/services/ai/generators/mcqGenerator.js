@@ -6,8 +6,12 @@ const { buildMcqPrompt } = require("../prompts/mcq.prompt");
 /**
  * Stage 2 — Generate MCQ Practice Questions using FAST model
  */
-async function generateMcqQuestions({ summary, jobDescription, selectedTrack }) {
-    const prompt = buildMcqPrompt({ summary, jobDescription, selectedTrack });
+async function generateMcqQuestions({ summary, jobDescription, selectedTrack, planConfig }) {
+    if (planConfig?.includeMCQ === false || planConfig?.mcqCount === 0) {
+        return { mcqQuestions: [] };
+    }
+
+    const prompt = buildMcqPrompt({ summary, jobDescription, selectedTrack, planConfig });
 
     const response = await generateJson({
         model: MODELS.FAST,

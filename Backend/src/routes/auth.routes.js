@@ -21,6 +21,14 @@ authRouter.post("/login", authController.loginUserController)
 
 
 /**
+ * @route POST /api/auth/google
+ * @description Google OAuth ID token verification & login/registration
+ * @access Public
+ */
+authRouter.post("/google", authController.googleAuthController)
+
+
+/**
  * @route GET /api/auth/logout
  * @description clear token from user cookie and add the token in blacklist
  * @access public
