@@ -18,23 +18,30 @@ export const detectTracks = async ({ jobDescription }) => {
 /**
  * @description Service to generate interview report based on user self description, resume and job description.
  */
-export const generateInterviewReport = async ({ jobDescription, selfDescription, resumeFile, selectedTrack, selectedTrackTitle }) => {
-
-    const formData = new FormData()
-    formData.append("jobDescription", jobDescription)
-    formData.append("selfDescription", selfDescription)
-    formData.append("resume", resumeFile)
-    if (selectedTrack) formData.append("selectedTrack", selectedTrack)
-    if (selectedTrackTitle) formData.append("selectedTrackTitle", selectedTrackTitle)
+export const generateInterviewReport = async (payload) => {
+    let formData;
+    if (payload instanceof FormData) {
+        formData = payload;
+    } else {
+        const { jobDescription, selfDescription, resumeFile, resume, selectedTrack, selectedTrackTitle, selectedTrackDetails, planConfig } = payload || {};
+        formData = new FormData();
+        if (jobDescription) formData.append("jobDescription", jobDescription);
+        if (selfDescription) formData.append("selfDescription", selfDescription);
+        const fileToAppend = resumeFile || resume;
+        if (fileToAppend) formData.append("resume", fileToAppend);
+        if (selectedTrack) formData.append("selectedTrack", selectedTrack);
+        if (selectedTrackTitle) formData.append("selectedTrackTitle", selectedTrackTitle);
+        if (selectedTrackDetails) formData.append("selectedTrackDetails", selectedTrackDetails);
+        if (planConfig) formData.append("planConfig", typeof planConfig === 'string' ? planConfig : JSON.stringify(planConfig));
+    }
 
     const response = await api.post("/api/interview/", formData, {
         headers: {
             "Content-Type": "multipart/form-data"
         }
-    })
+    });
 
-    return response.data
-
+    return response.data;
 }
 
 
@@ -57,6 +64,14 @@ export const getAllInterviewReports = async () => {
     return response.data
 }
 
+
+/**
+ * @description Service to retry or generate ATS analysis on demand.
+ */
+export const retryAtsAnalysis = async (interviewId) => {
+    const response = await api.post(`/api/interview/report/${interviewId}/ats-retry`);
+    return response.data;
+}
 
 /**
  * @description Service to generate resume pdf based on user self description, resume content and job description.

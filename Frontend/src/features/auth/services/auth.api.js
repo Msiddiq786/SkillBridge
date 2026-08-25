@@ -35,8 +35,14 @@ export async function login({ email, password }) {
 
     } catch (err) {
         console.log(err)
+        throw err;
     }
 
+}
+
+export async function googleLogin({ credential }) {
+    const response = await api.post("/api/auth/google", { credential });
+    return response.data;
 }
 
 export async function logout() {

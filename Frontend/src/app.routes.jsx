@@ -5,6 +5,10 @@ import Protected from "./features/auth/components/Protected";
 import Home from "./features/interview/pages/Home";
 import Interview from "./features/interview/pages/Interview";
 import Dashboard from "./features/interview/pages/Dashboard";
+import PracticeHub from "./features/interview/pages/PracticeHub";
+import PracticeSession from "./features/interview/pages/PracticeSession";
+import PracticeResults from "./features/interview/pages/PracticeResults";
+import Profile from "./features/interview/pages/Profile";
 
 export const router = createBrowserRouter([
     {
@@ -24,7 +28,23 @@ export const router = createBrowserRouter([
         element: <Protected><Dashboard /></Protected>
     },
     {
-        path:"/interview/:interviewId",
+        path: "/profile",
+        element: <Protected><Profile /></Protected>
+    },
+    {
+        path: "/interview/:interviewId",
         element: <Protected><Interview /></Protected>
+    },
+    {
+        path: "/practice",
+        element: <Protected><PracticeHub /></Protected>
+    },
+    {
+        path: "/practice/session/:sessionId",
+        element: <Protected><PracticeSession /></Protected>
+    },
+    {
+        path: "/practice/results/:sessionId",
+        element: <Protected><PracticeResults /></Protected>
     }
-])
+]);

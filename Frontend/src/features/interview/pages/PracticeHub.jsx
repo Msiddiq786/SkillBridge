@@ -5,44 +5,58 @@ import { usePractice } from '../hooks/usePractice';
 import AppShell from '../components/AppShell';
 import '../style/practice.scss';
 
-const PRACTICE_MODES = [
-    {
-        id: 'technical',
-        title: 'Voice Technical Practice',
-        icon: '🎙️',
-        questionsCount: 20,
-        estimatedTime: '~20–30 min',
-        description: 'Speak your answers out loud. Practice articulating complex technical concepts naturally with instant AI scoring and progressive follow-ups.',
-        badge: 'Recommended'
-    },
-    {
-        id: 'behavioral',
-        title: 'Behavioral STAR Coaching',
-        icon: '🎯',
-        questionsCount: 10,
-        estimatedTime: '~15–20 min',
-        description: 'Master conversational storytelling with the STAR method. Speak your stories and receive structured evaluation on Situation, Task, Action, and Result.',
-        badge: 'STAR Voice'
-    },
-    {
-        id: 'mcq',
-        title: 'MCQ Quiz Simulator',
-        icon: '📝',
-        questionsCount: 15,
-        estimatedTime: '~10 min',
-        description: 'Fast-paced multiple choice quiz with instant correctness feedback, timer tracking, and topic accuracy analytics.',
-        badge: 'Quiz Mode'
-    },
-    {
-        id: 'mixed',
-        title: 'Full Mock Interview',
-        icon: '🚀',
-        questionsCount: 45,
-        estimatedTime: '~45–60 min',
-        description: 'Complete realistic mock interview simulation across Technical (Voice), MCQ, and Behavioral (Voice) in a single session.',
-        badge: 'Full Prep'
-    }
-];
+const buildPracticeModes = (selectedReport) => {
+    const cfg = selectedReport?.planConfig;
+    const techCount = cfg?.technicalCount ?? (selectedReport?.technicalQuestions?.length || 20);
+    const mcqCount = cfg?.mcqCount ?? (selectedReport?.mcqQuestions?.length || 15);
+    const behCount = cfg?.behavioralCount ?? (selectedReport?.behavioralQuestions?.length || 10);
+    const mixedTotal = (cfg?.includeTechnical !== false ? techCount : 0) +
+                       (cfg?.includeMCQ !== false ? mcqCount : 0) +
+                       (cfg?.includeBehavioral !== false ? behCount : 0);
+
+    return [
+        {
+            id: 'technical',
+            title: 'Voice Technical Practice',
+            icon: '🎙️',
+            questionsCount: techCount,
+            estimatedTime: `~${Math.max(10, Math.round(techCount * 1.2))} min`,
+            description: 'Speak your answers out loud. Practice articulating complex technical concepts naturally with instant AI scoring and progressive follow-ups.',
+            badge: 'Recommended',
+            disabled: cfg?.includeTechnical === false
+        },
+        {
+            id: 'behavioral',
+            title: 'Behavioral STAR Coaching',
+            icon: '🎯',
+            questionsCount: behCount,
+            estimatedTime: `~${Math.max(10, Math.round(behCount * 1.5))} min`,
+            description: 'Master conversational storytelling with the STAR method. Speak your stories and receive structured evaluation on Situation, Task, Action, and Result.',
+            badge: 'STAR Voice',
+            disabled: cfg?.includeBehavioral === false
+        },
+        {
+            id: 'mcq',
+            title: 'MCQ Quiz Simulator',
+            icon: '📝',
+            questionsCount: mcqCount,
+            estimatedTime: `~${Math.max(5, Math.round(mcqCount * 0.7))} min`,
+            description: 'Fast-paced multiple choice quiz with instant correctness feedback, timer tracking, and topic accuracy analytics.',
+            badge: 'Quiz Mode',
+            disabled: cfg?.includeMCQ === false
+        },
+        {
+            id: 'mixed',
+            title: 'Full Mock Interview',
+            icon: '🚀',
+            questionsCount: mixedTotal,
+            estimatedTime: `~${Math.max(20, Math.round(mixedTotal * 1.2))} min`,
+            description: 'Complete realistic mock interview simulation across Technical (Voice), MCQ, and Behavioral (Voice) in a single session.',
+            badge: 'Full Prep',
+            disabled: mixedTotal === 0
+        }
+    ];
+};
 
 const PracticeHub = () => {
     const navigate = useNavigate();
@@ -104,10 +118,18 @@ const PracticeHub = () => {
     const recentCompleted = stats?.recentSessions?.filter(s => s.status === 'COMPLETED') || [];
 
     const getActiveSessionRequiredCount = (session) => {
-        if (session.mode === 'technical') return 20;
-        if (session.mode === 'mcq') return 15;
-        if (session.mode === 'behavioral') return 10;
-        return 45;
+        const cfg = session?.interviewReport?.planConfig;
+        const techCount = cfg?.technicalCount ?? 20;
+        const mcqCount = cfg?.mcqCount ?? 15;
+        const behCount = cfg?.behavioralCount ?? 10;
+        const mixedTotal = (cfg?.includeTechnical !== false ? techCount : 0) +
+                           (cfg?.includeMCQ !== false ? mcqCount : 0) +
+                           (cfg?.includeBehavioral !== false ? behCount : 0);
+
+        if (session.mode === 'technical') return techCount;
+        if (session.mode === 'mcq') return mcqCount;
+        if (session.mode === 'behavioral') return behCount;
+        return mixedTotal;
     };
 
     // ── Loading Skeleton ──
@@ -281,9 +303,9 @@ const PracticeHub = () => {
                                         {rep.company && <p className="rep-company">{rep.company}</p>}
 
                                         <div className="rep-breakdown-pills">
-                                            <span className="pill">20 Technical</span>
-                                            <span className="pill">15 MCQ</span>
-                                            <span className="pill">10 Behavioral</span>
+                                            <span className="pill">{rep.planConfig?.technicalCount ?? 20} Technical</span>
+                                            <span className="pill">{rep.planConfig?.mcqCount ?? 15} MCQ</span>
+                                            <span className="pill">{rep.planConfig?.behavioralCount ?? 10} Behavioral</span>
                                         </div>
 
                                         <div className="card-footer">
@@ -309,18 +331,19 @@ const PracticeHub = () => {
                         </div>
 
                         <div className="mode-select-grid">
-                            {PRACTICE_MODES.map(m => {
+                            {buildPracticeModes(selectedReport).map(m => {
                                 const isSelected = selectedMode === m.id;
 
                                 return (
                                     <div
                                         key={m.id}
-                                        className={`mode-card ${isSelected ? 'mode-card--active' : ''}`}
-                                        onClick={() => setSelectedMode(m.id)}
+                                        className={`mode-card ${isSelected ? 'mode-card--active' : ''} ${m.disabled ? 'mode-card--disabled' : ''}`}
+                                        onClick={() => !m.disabled && setSelectedMode(m.id)}
+                                        style={m.disabled ? { opacity: 0.5, pointerEvents: 'none' } : {}}
                                     >
                                         <div className="mode-header">
                                             <span className="mode-icon">{m.icon}</span>
-                                            <span className="mode-badge">{m.badge}</span>
+                                            <span className="mode-badge">{m.disabled ? 'Disabled in Plan' : m.badge}</span>
                                         </div>
                                         <h3>{m.title}</h3>
                                         <div className="mode-meta">
@@ -331,7 +354,7 @@ const PracticeHub = () => {
                                         <p className="mode-desc">{m.description}</p>
                                         <div className="mode-select-radio">
                                             <span className={`radio-dot ${isSelected ? 'radio-dot--checked' : ''}`} />
-                                            <span>{isSelected ? 'Selected' : 'Select Mode'}</span>
+                                            <span>{m.disabled ? 'Not in Plan' : isSelected ? 'Selected' : 'Select Mode'}</span>
                                         </div>
                                     </div>
                                 );
@@ -343,9 +366,14 @@ const PracticeHub = () => {
                     <div className="practice-start-bar">
                         <div className="start-bar-summary">
                             <span>Target Role: <strong>{selectedReport?.title || "Selected Track"}</strong></span>
-                            <span className="mode-preview-tag">
-                                {PRACTICE_MODES.find(m => m.id === selectedMode)?.title} ({PRACTICE_MODES.find(m => m.id === selectedMode)?.questionsCount} Questions)
-                            </span>
+                            {(() => {
+                                const activeModeObj = buildPracticeModes(selectedReport).find(m => m.id === selectedMode);
+                                return (
+                                    <span className="mode-preview-tag">
+                                        {activeModeObj?.title || 'Practice Mode'} ({activeModeObj?.questionsCount || 0} Questions)
+                                    </span>
+                                );
+                            })()}
                         </div>
                         <button
                             type="button"

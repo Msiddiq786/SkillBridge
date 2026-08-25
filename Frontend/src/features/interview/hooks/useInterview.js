@@ -1,5 +1,5 @@
-import { getAllInterviewReports, generateInterviewReport, getInterviewReportById, generateResumePdf, detectTracks } from "../services/interview.api"
-import { useContext, useEffect } from "react"
+import { getAllInterviewReports, generateInterviewReport, getInterviewReportById, generateResumePdf, detectTracks, retryAtsAnalysis } from "../services/interview.api"
+import { useContext, useEffect, useCallback } from "react"
 import { InterviewContext } from "../interview.context"
 import { useParams } from "react-router"
 
@@ -14,11 +14,11 @@ export const useInterview = () => {
 
     const { loading, setLoading, report, setReport, reports, setReports } = context
 
-    const generateReport = async ({ jobDescription, selfDescription, resumeFile, selectedTrack, selectedTrackTitle }) => {
+    const generateReport = useCallback(async (payload) => {
         setLoading(true)
         let response = null
         try {
-            response = await generateInterviewReport({ jobDescription, selfDescription, resumeFile, selectedTrack, selectedTrackTitle })
+            response = await generateInterviewReport(payload)
             if (response?.interviewReport) {
                 setReport(response.interviewReport)
             }
@@ -29,24 +29,25 @@ export const useInterview = () => {
             setLoading(false)
         }
 
-        return response?.interviewReport
-    }
+        return response?.interviewReport || response
+    }, [setLoading, setReport])
 
-    const detectJobTracks = async ({ jobDescription }) => {
+    const detectJobTracks = useCallback(async (param) => {
         try {
+            const jobDescription = typeof param === 'string' ? param : param?.jobDescription
             const result = await detectTracks({ jobDescription })
             return result
         } catch (error) {
             console.error("detectTracks error:", error)
             return null
         }
-    }
+    }, [])
 
-    const getReportById = async (interviewId) => {
+    const getReportById = useCallback(async (id) => {
         setLoading(true)
         let response = null
         try {
-            response = await getInterviewReportById(interviewId)
+            response = await getInterviewReportById(id)
             if (response?.interviewReport) {
                 setReport(response.interviewReport)
             }
@@ -56,9 +57,9 @@ export const useInterview = () => {
             setLoading(false)
         }
         return response?.interviewReport
-    }
+    }, [setLoading, setReport])
 
-    const getReports = async () => {
+    const getReports = useCallback(async () => {
         setLoading(true)
         let response = null
         try {
@@ -73,9 +74,9 @@ export const useInterview = () => {
         }
 
         return response?.interviewReports || []
-    }
+    }, [setLoading, setReports])
 
-    const getResumePdf = async (interviewReportId) => {
+    const getResumePdf = useCallback(async (interviewReportId) => {
         setLoading(true)
         let response = null
         try {
@@ -92,7 +93,24 @@ export const useInterview = () => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [setLoading])
+
+    const handleRetryAts = useCallback(async (interviewReportId) => {
+        try {
+            const res = await retryAtsAnalysis(interviewReportId)
+            if (res?.atsAnalysis) {
+                setReport(prev => ({
+                    ...prev,
+                    atsStatus: "ATS_READY",
+                    atsAnalysis: res.atsAnalysis
+                }))
+            }
+            return res
+        } catch (err) {
+            console.error("handleRetryAts error:", err)
+            throw err
+        }
+    }, [setReport])
 
     useEffect(() => {
         if (interviewId) {
@@ -100,8 +118,8 @@ export const useInterview = () => {
         } else {
             getReports()
         }
-    }, [ interviewId ])
+    }, [ interviewId, getReportById, getReports ])
 
-    return { loading, report, reports, generateReport, detectJobTracks, getReportById, getReports, getResumePdf }
+    return { loading, report, setReport, reports, generateReport, detectJobTracks, getReportById, getReports, getResumePdf, handleRetryAts }
 
 }

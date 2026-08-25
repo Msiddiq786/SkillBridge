@@ -44,13 +44,17 @@ const PracticeSession = () => {
     // Voice recognition hook
     const {
         isSupported: isVoiceSupported,
+        status: voiceStatus,
         isListening,
+        isStopping,
         transcript: liveTranscript,
-        rawTranscript,
+        finalTranscript,
+        interimTranscript,
         recordingSeconds,
         formattedRecordingTime,
         permissionState,
         error: voiceError,
+        isSuspiciousRepeat,
         startListening,
         stopListening,
         resetTranscript,
@@ -188,10 +192,18 @@ const PracticeSession = () => {
     // Mode-specific attempted calculations
     const { requiredCount, attemptedCount, remainingCount } = useMemo(() => {
         if (!session) return { requiredCount: 0, attemptedCount: 0, remainingCount: 0 };
-        const req = session.mode === 'technical' ? 20 :
-                    session.mode === 'mcq' ? 15 :
-                    session.mode === 'behavioral' ? 10 :
-                    session.mode === 'mixed' ? 45 : 0;
+        const cfg = report?.planConfig;
+        const techCount = cfg?.technicalCount ?? (report?.technicalQuestions?.length || 20);
+        const mcqCount = cfg?.mcqCount ?? (report?.mcqQuestions?.length || 15);
+        const behCount = cfg?.behavioralCount ?? (report?.behavioralQuestions?.length || 10);
+        const mixedTotal = (cfg?.includeTechnical !== false ? techCount : 0) +
+                           (cfg?.includeMCQ !== false ? mcqCount : 0) +
+                           (cfg?.includeBehavioral !== false ? behCount : 0);
+
+        const req = session.mode === 'technical' ? techCount :
+                    session.mode === 'mcq' ? mcqCount :
+                    session.mode === 'behavioral' ? behCount :
+                    session.mode === 'mixed' ? mixedTotal : 0;
 
         const attemptedSet = new Set();
         if (Array.isArray(session.answers)) {
@@ -212,7 +224,7 @@ const PracticeSession = () => {
             attemptedCount: att,
             remainingCount: Math.max(0, req - att)
         };
-    }, [session]);
+    }, [session, report]);
 
     // Quick Practice Confidence rating submission
     const handleQuickConfidence = async (confKey, scoreVal) => {
@@ -532,14 +544,34 @@ const PracticeSession = () => {
                             {/* ── 1. Voice Practice Flow (Primary) ── */}
                             {inputMode === 'voice' && (
                                 <div className="voice-input-panel">
+                                    {/* Mic Permission / Error Banner */}
+                                    {(permissionState === 'denied' || !isVoiceSupported || voiceError) && (
+                                        <div className="session-error-banner">
+                                            <span className="banner-icon">⚠️</span>
+                                            <div>
+                                                <strong>{permissionState === 'denied' ? 'Microphone Permission Blocked' : !isVoiceSupported ? 'Browser Unsupported' : 'Microphone Notice'}</strong>
+                                                <p>{voiceError || (!isVoiceSupported ? 'Voice practice is not supported in this browser. Please use Chrome, Edge, or type instead.' : 'Please allow microphone access or switch to text input.')}</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className="button secondary-button"
+                                                onClick={() => setInputMode('text')}
+                                                style={{ marginLeft: 'auto' }}
+                                            >
+                                                ✍ Type Instead
+                                            </button>
+                                        </div>
+                                    )}
+
                                     {/* Mic Trigger State */}
                                     <div className="voice-record-center">
                                         {!isListening ? (
                                             <button
                                                 type="button"
                                                 className="voice-record-btn voice-record-btn--idle"
-                                                onClick={startListening}
+                                                onClick={() => startListening()}
                                                 aria-label="Start Voice Recording"
+                                                disabled={isStopping || permissionState === 'denied' || !isVoiceSupported}
                                             >
                                                 <div className="mic-icon-circle">
                                                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -549,9 +581,11 @@ const PracticeSession = () => {
                                                     </svg>
                                                 </div>
                                                 <span className="record-btn-text">
-                                                    {hasSpokenOrTypedAnswer ? 'Record Again / Add to Answer' : 'Start Speaking Your Answer'}
+                                                    {isStopping ? 'Finalizing Transcript...' : hasSpokenOrTypedAnswer ? 'Record Again / Add to Answer' : 'Start Speaking Your Answer'}
                                                 </span>
-                                                <span className="record-btn-sub">Click to speak naturally as you would in an interview</span>
+                                                <span className="record-btn-sub">
+                                                    {isStopping ? 'Processing final speech segments...' : 'Click to speak naturally as you would in an interview'}
+                                                </span>
                                             </button>
                                         ) : (
                                             <button
@@ -575,52 +609,74 @@ const PracticeSession = () => {
                                     </div>
 
                                     {/* Live / Completed Transcript Card */}
-                                    {(hasSpokenOrTypedAnswer || isListening) && (
+                                    {(hasSpokenOrTypedAnswer || isListening || isStopping) && (
                                         <div className="transcript-preview-card">
                                             <div className="transcript-header">
                                                 <span className="transcript-label">
-                                                    {isListening ? '🎙 Live Speech Transcript' : '📝 Your Spoken Response'}
+                                                    {isListening ? '🎙 Live Speech Transcript' : isStopping ? '⏳ Finalizing Transcript' : '📝 Your Spoken Response'}
                                                 </span>
-                                                {!isListening && (
+                                                {!isListening && !isStopping && hasSpokenOrTypedAnswer && (
                                                     <button
                                                         type="button"
                                                         className="edit-transcript-btn"
                                                         onClick={() => setIsEditingTranscript(e => !e)}
                                                     >
-                                                        {isEditingTranscript ? 'Done Editing' : '✏️ Edit Text'}
+                                                        {isEditingTranscript ? '✓ Done Editing' : '✏️ Edit Text'}
                                                     </button>
                                                 )}
                                             </div>
 
+                                            {/* Quality Check Warning if suspicious repetition is detected */}
+                                            {isSuspiciousRepeat && !isListening && (
+                                                <div className="transcript-quality-warning">
+                                                    <span className="warning-icon">⚠️</span>
+                                                    <div>
+                                                        <strong>Transcript Quality Check:</strong>
+                                                        <span> Your recording may contain repeated phrases from mic echo. You can edit the text before evaluation or re-record.</span>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {isEditingTranscript ? (
                                                 <textarea
-                                                    value={liveTranscript || userTextAnswer}
+                                                    value={userTextAnswer || liveTranscript}
                                                     onChange={(e) => {
                                                         setManualTranscript(e.target.value);
                                                         setUserTextAnswer(e.target.value);
                                                     }}
                                                     rows={4}
                                                     className="transcript-edit-area"
+                                                    placeholder="Edit your speech transcript here..."
                                                 />
                                             ) : (
                                                 <p className="transcript-body-text">
-                                                    {liveTranscript || userTextAnswer || "Listening to your microphone..."}
+                                                    {finalTranscript && <span className="transcript-final-text">{finalTranscript}</span>}
+                                                    {interimTranscript && <span className="transcript-interim-text">[{interimTranscript}...]</span>}
+                                                    {!finalTranscript && !interimTranscript && (
+                                                        <span className="transcript-empty-prompt">
+                                                            {isListening ? "Listening to your microphone... Speak clearly into your mic." : userTextAnswer || "No transcript recorded yet."}
+                                                        </span>
+                                                    )}
                                                 </p>
                                             )}
 
-                                            {!isListening && hasSpokenOrTypedAnswer && !evaluationResult && (
+                                            {!isListening && !isStopping && hasSpokenOrTypedAnswer && !evaluationResult && (
                                                 <div className="transcript-actions-row">
                                                     <button
                                                         type="button"
                                                         className="button secondary-button"
-                                                        onClick={resetTranscript}
+                                                        onClick={() => {
+                                                            resetTranscript();
+                                                            setUserTextAnswer('');
+                                                            setIsEditingTranscript(false);
+                                                        }}
                                                     >
                                                         🔄 Clear & Re-Record
                                                     </button>
                                                     <button
                                                         type="button"
                                                         className="button primary-button evaluate-submit-btn"
-                                                        onClick={() => handleEvaluateAnswer()}
+                                                        onClick={() => handleEvaluateAnswer(userTextAnswer || liveTranscript)}
                                                         disabled={evaluating}
                                                     >
                                                         {evaluating ? 'AI Evaluating...' : '✨ Get AI Feedback & Score'}

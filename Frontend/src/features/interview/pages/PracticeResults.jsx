@@ -33,10 +33,18 @@ const PracticeResults = () => {
 
     const { requiredCount, attemptedCount, remainingCount, isCompleted } = useMemo(() => {
         if (!session) return { requiredCount: 0, attemptedCount: 0, remainingCount: 0, isCompleted: false };
-        const req = session.mode === 'technical' ? 20 :
-                    session.mode === 'mcq' ? 15 :
-                    session.mode === 'behavioral' ? 10 :
-                    session.mode === 'mixed' ? 45 : 0;
+        const cfg = report?.planConfig;
+        const techCount = cfg?.technicalCount ?? (report?.technicalQuestions?.length || 20);
+        const mcqCount = cfg?.mcqCount ?? (report?.mcqQuestions?.length || 15);
+        const behCount = cfg?.behavioralCount ?? (report?.behavioralQuestions?.length || 10);
+        const mixedTotal = (cfg?.includeTechnical !== false ? techCount : 0) +
+                           (cfg?.includeMCQ !== false ? mcqCount : 0) +
+                           (cfg?.includeBehavioral !== false ? behCount : 0);
+
+        const req = session.mode === 'technical' ? techCount :
+                    session.mode === 'mcq' ? mcqCount :
+                    session.mode === 'behavioral' ? behCount :
+                    session.mode === 'mixed' ? mixedTotal : 0;
 
         const attemptedSet = new Set();
         if (Array.isArray(session.answers)) {
@@ -58,56 +66,11 @@ const PracticeResults = () => {
             remainingCount: Math.max(0, req - att),
             isCompleted: session.status === 'COMPLETED'
         };
-    }, [session]);
+    }, [session, report]);
 
-    if (error) {
-        return (
-            <AppShell activeNavId="practice">
-                <div className="practice-results-page">
-                    <div className="practice-error-card">
-                        <span className="error-icon">⚠️</span>
-                        <h2>Error Loading Practice Results</h2>
-                        <p>{error}</p>
-                        <Link to="/practice" className="button primary-button">
-                            Back to Practice Hub
-                        </Link>
-                    </div>
-                </div>
-            </AppShell>
-        );
-    }
-
-    if (loading || !results || !session) {
-        return (
-            <AppShell activeNavId="practice">
-                <div className="loading-screen">
-                    <div className="loading-spinner" />
-                    <h2>Computing Practice Analytics & Readiness...</h2>
-                </div>
-            </AppShell>
-        );
-    }
-
-    const overallScore = results.overallScore ?? session.overallScore ?? 0;
-    const scoreColorClass = overallScore >= 80 ? 'score-ring--high' : overallScore >= 60 ? 'score-ring--mid' : 'score-ring--low';
-
-    const technicalAnswers = session.answers?.filter(a => a.questionType === 'technical') || [];
-    const mcqAnswers = session.answers?.filter(a => a.questionType === 'mcq') || [];
-    const behavioralAnswers = session.answers?.filter(a => a.questionType === 'behavioral') || [];
-
-    const calculateAvg = (answers) => {
-        const attempted = answers.filter(a => typeof a.score === 'number');
-        if (attempted.length === 0) return null;
-        const total = attempted.reduce((acc, a) => acc + a.score, 0);
-        return Math.round(total / attempted.length);
-    };
-
-    const techScore = calculateAvg(technicalAnswers);
-    const mcqScore = calculateAvg(mcqAnswers);
-    const behScore = calculateAvg(behavioralAnswers);
-
-    // Spoken answers count (answers with user text / voice transcript)
-    const spokenAnswersCount = (session.answers || []).filter(a => typeof a.userAnswer === 'string' && a.userAnswer.trim().length > 0).length;
+    const behavioralAnswers = useMemo(() => {
+        return session?.answers?.filter(a => a.questionType === 'behavioral') || [];
+    }, [session?.answers]);
 
     // STAR competency averages if behavioral questions had feedback
     const starAverages = useMemo(() => {
@@ -131,6 +94,56 @@ const PracticeResults = () => {
             result: Math.round(totals.result / len)
         };
     }, [behavioralAnswers]);
+
+    if (error) {
+        return (
+            <AppShell activeNavId="practice">
+                <div className="practice-results-page">
+                    <div className="practice-error-card">
+                        <span className="error-icon">⚠️</span>
+                        <h2>Error Loading Practice Results</h2>
+                        <p>{error}</p>
+                        <Link to="/practice" className="button primary-button">
+                            Back to Practice Hub
+                        </Link>
+                    </div>
+                </div>
+            </AppShell>
+        );
+    }
+
+    if (loading || !results || !session) {
+        return (
+            <AppShell activeNavId="practice">
+                <div className="practice-results-page">
+                    <div className="loading-screen">
+                        <div className="loading-spinner" />
+                        <h2>Computing Practice Analytics & Readiness...</h2>
+                    </div>
+                </div>
+            </AppShell>
+        );
+    }
+
+    const overallScore = results.overallScore ?? session.overallScore ?? 0;
+    const scoreColorClass = overallScore >= 80 ? 'score-ring--high' : overallScore >= 60 ? 'score-ring--mid' : 'score-ring--low';
+
+    const technicalAnswers = session.answers?.filter(a => a.questionType === 'technical') || [];
+    const mcqAnswers = session.answers?.filter(a => a.questionType === 'mcq') || [];
+
+    const calculateAvg = (answers) => {
+        const attempted = answers.filter(a => typeof a.score === 'number');
+        if (attempted.length === 0) return null;
+        const total = attempted.reduce((acc, a) => acc + a.score, 0);
+        return Math.round(total / attempted.length);
+    };
+
+    const techScore = calculateAvg(technicalAnswers);
+    const mcqScore = calculateAvg(mcqAnswers);
+    const behScore = calculateAvg(behavioralAnswers);
+
+    // Spoken answers count (answers with user text / voice transcript)
+    const spokenAnswersCount = (session.answers || []).filter(a => typeof a.userAnswer === 'string' && a.userAnswer.trim().length > 0).length;
 
     const weakTopics = results.weakTopics || session.weakTopics || [];
     const topicPerformance = results.topicPerformance || session.topicPerformance || [];
