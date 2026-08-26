@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "cd Frontend && npm install && npm run build",
-    "build:frontend": "cd Frontend && npm run build",
+    "build": "node -e \"const { execSync } = require('child_process'); const fs = require('fs'); execSync('npm --prefix Frontend install && npm --prefix Frontend run build', { stdio: 'inherit' }); fs.cpSync('Frontend/dist', 'dist', { recursive: true }); console.log('Successfully built and copied to root dist');\"",
     "start:backend": "cd Backend && node server.js"
   }
 }
