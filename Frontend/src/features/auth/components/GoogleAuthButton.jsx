@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 
+// Global singleton tracking for Google Identity Services
+let isGisInitialized = false;
+let activeGisCallback = null;
+
 const GoogleAuthButton = ({ onSuccess }) => {
     const { handleGoogleLogin } = useAuth();
     const btnContainerRef = useRef(null);
@@ -9,7 +13,6 @@ const GoogleAuthButton = ({ onSuccess }) => {
 
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-    const hasInitializedRef = useRef(false);
     const onSuccessRef = useRef(onSuccess);
     const handleGoogleLoginRef = useRef(handleGoogleLogin);
 
@@ -21,44 +24,63 @@ const GoogleAuthButton = ({ onSuccess }) => {
         handleGoogleLoginRef.current = handleGoogleLogin;
     }, [handleGoogleLogin]);
 
+    // Update global callback handler for the currently active component instance
     useEffect(() => {
-        if (!clientId || hasInitializedRef.current) {
+        activeGisCallback = async (response) => {
+            if (!response?.credential) {
+                setErrorMsg("Google sign-in was cancelled.");
+                return;
+            }
+
+            setIsProcessing(true);
+            setErrorMsg(null);
+
+            try {
+                const data = await handleGoogleLoginRef.current({ credential: response.credential });
+                if (data?.user && onSuccessRef.current) {
+                    onSuccessRef.current();
+                }
+            } catch (err) {
+                const msg = err.response?.data?.message || "Google sign-in failed. Please try again.";
+                setErrorMsg(msg);
+            } finally {
+                setIsProcessing(false);
+            }
+        };
+
+        return () => {
+            if (activeGisCallback) {
+                activeGisCallback = null;
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!clientId) {
             return;
         }
 
         let intervalId = null;
 
-        const initializeGis = () => {
+        const setupGis = () => {
             if (window.google?.accounts?.id && btnContainerRef.current) {
                 try {
-                    window.google.accounts.id.initialize({
-                        client_id: clientId,
-                        callback: async (response) => {
-                            if (!response?.credential) {
-                                setErrorMsg("Google sign-in was cancelled.");
-                                return;
-                            }
-
-                            setIsProcessing(true);
-                            setErrorMsg(null);
-
-                            try {
-                                const data = await handleGoogleLoginRef.current({ credential: response.credential });
-                                if (data?.user && onSuccessRef.current) {
-                                    onSuccessRef.current();
+                    // Initialize GIS only ONCE globally
+                    if (!isGisInitialized) {
+                        window.google.accounts.id.initialize({
+                            client_id: clientId,
+                            callback: (response) => {
+                                if (typeof activeGisCallback === 'function') {
+                                    activeGisCallback(response);
                                 }
-                            } catch (err) {
-                                const msg = err.response?.data?.message || "Google sign-in failed. Please try again.";
-                                setErrorMsg(msg);
-                            } finally {
-                                setIsProcessing(false);
-                            }
-                        },
-                        auto_select: false,
-                        cancel_on_tap_outside: true
-                    });
+                            },
+                            auto_select: false,
+                            cancel_on_tap_outside: true
+                        });
+                        isGisInitialized = true;
+                    }
 
-                    // Clear any previous render
+                    // Clear any previous render and render button
                     btnContainerRef.current.innerHTML = "";
 
                     window.google.accounts.id.renderButton(btnContainerRef.current, {
@@ -71,21 +93,20 @@ const GoogleAuthButton = ({ onSuccess }) => {
                         logo_alignment: "left"
                     });
 
-                    hasInitializedRef.current = true;
+                    return true;
                 } catch (e) {
-                    console.error("GIS initialization error:", e);
+                    console.error("GIS render error:", e);
                 }
-                return true;
             }
             return false;
         };
 
-        if (!initializeGis()) {
+        if (!setupGis()) {
             intervalId = setInterval(() => {
-                if (initializeGis()) {
+                if (setupGis()) {
                     clearInterval(intervalId);
                 }
-            }, 300);
+            }, 250);
         }
 
         return () => {
