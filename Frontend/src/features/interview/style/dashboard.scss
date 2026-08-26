@@ -264,7 +264,7 @@
     min-width: 0;
 }
 
-/* ── 1. HERO ACTIVE JOURNEY CARD ── */
+/* ── 1. HERO ACTIVE / COMPLETED JOURNEY CARD ── */
 .hero-journey-card {
     background: #121F33;
     border: 1px solid rgba(124, 58, 237, 0.3);
@@ -276,17 +276,24 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     min-width: 0;
 
+    &--completed {
+        border-color: rgba(34, 197, 94, 0.35);
+        background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, #121F33 100%);
+    }
+
     .hero-journey-header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        gap: 1rem;
+        align-items: center;
+        gap: 1.25rem;
         flex-wrap: wrap;
 
         .journey-identity {
             display: flex;
             flex-direction: column;
             gap: 0.3rem;
+            min-width: 0;
+            flex: 1;
 
             .journey-status-pill {
                 display: inline-block;
@@ -298,6 +305,12 @@
                 padding: 0.2rem 0.6rem;
                 border-radius: 9999px;
                 width: fit-content;
+
+                &--completed {
+                    background: rgba(34, 197, 94, 0.18);
+                    color: #4ADE80;
+                    border: 1px solid rgba(34, 197, 94, 0.35);
+                }
             }
 
             .journey-role {
@@ -306,39 +319,13 @@
                 color: #F8FAFC;
                 margin: 0;
                 letter-spacing: -0.02em;
+                word-break: break-word;
             }
 
             .journey-company {
                 font-size: 0.85rem;
                 color: #94A3B8;
                 margin: 0;
-            }
-        }
-
-        .journey-switcher {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #0B1424;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            padding: 0.35rem 0.75rem;
-
-            .switcher-label {
-                font-size: 0.75rem;
-                color: #94A3B8;
-                font-weight: 600;
-                white-space: nowrap;
-            }
-
-            .journey-select {
-                background: none;
-                border: none;
-                color: #F8FAFC;
-                font-size: 0.8rem;
-                font-weight: 700;
-                outline: none;
-                cursor: pointer;
             }
         }
     }
@@ -374,6 +361,10 @@
                 background: linear-gradient(90deg, #7C3AED 0%, #3B82F6 50%, #4ADE80 100%);
                 border-radius: 9999px;
                 transition: width 0.4s ease;
+
+                &--completed {
+                    background: linear-gradient(90deg, #10B981 0%, #22C55E 100%);
+                }
             }
         }
     }

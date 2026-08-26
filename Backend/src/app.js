@@ -19,6 +19,8 @@ const progressRouter = require("./routes/progress.routes");
 const practiceRouter = require("./routes/practice.routes");
 const profileRouter = require("./routes/profile.routes");
 const journeyRouter = require("./routes/journey.routes");
+const readinessRouter = require("./routes/readiness.routes");
+const applicationRouter = require("./routes/application.routes");
 
 app.use("/api/auth", authRouter);
 app.use("/api/interview", interviewRouter);
@@ -26,5 +28,7 @@ app.use("/api/progress", progressRouter);
 app.use("/api/practice", practiceRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/journey", journeyRouter);
+app.use("/api/readiness", readinessRouter);
+app.use("/api/applications", applicationRouter);
 
 module.exports = app;

@@ -1,6 +1,6 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
-const progressService = require("../services/progress.service");
+const { getProgressController, getProgressSummaryController } = require("../controllers/progress.controller");
 
 const router = express.Router();
 
@@ -11,18 +11,17 @@ const router = express.Router();
 router.get(
     "/",
     authMiddleware.authUser,
-    async (req, res) => {
-        try {
-            const progress = await progressService.getProgress(req.user.id);
-            return res.status(200).json(progress);
-        } catch (err) {
-            console.error("Progress fetch error:", err);
-            return res.status(500).json({
-                progress: 0,
-                status: "IDLE"
-            });
-        }
-    }
+    getProgressController
+);
+
+/**
+ * GET /api/progress/summary
+ * Returns aggregated learning, analyzer, streak, and skill statistics
+ */
+router.get(
+    "/summary",
+    authMiddleware.authUser,
+    getProgressSummaryController
 );
 
 module.exports = router;

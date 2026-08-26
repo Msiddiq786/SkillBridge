@@ -60,4 +60,11 @@ journeyRouter.post("/:id/switch", authMiddleware.authUser, journeyController.swi
  */
 journeyRouter.post("/application", authMiddleware.authUser, journeyController.updateApplicationController);
 
+/**
+ * @route GET /api/journey/achievements/progression
+ * @description Get dynamic achievement milestones and progression
+ * @access private
+ */
+journeyRouter.get("/achievements/progression", authMiddleware.authUser, journeyController.getAchievementsProgressionController);
+
 module.exports = journeyRouter;

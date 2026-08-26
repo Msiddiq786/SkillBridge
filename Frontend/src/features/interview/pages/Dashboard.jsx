@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { useInterview } from '../hooks/useInterview';
 import { useJourney } from '../hooks/useJourney';
 import { useAuth } from '../../auth/hooks/useAuth';
 import AppShell from '../components/AppShell';
+import TargetSwitcher from '../components/TargetSwitcher';
 import '../style/dashboard.scss';
 
 const Dashboard = () => {
@@ -24,6 +25,8 @@ const Dashboard = () => {
     const [activeTab, setActiveTab] = useState('journey'); // 'journey' | 'blueprints' | 'activity'
     const [actionFeedback, setActionFeedback] = useState(null);
     const [isUpdatingApp, setIsUpdatingApp] = useState(false);
+    const [isSwitchingTarget, setIsSwitchingTarget] = useState(false);
+    const switchSeqRef = useRef(0);
     const [appForm, setAppForm] = useState({
         status: 'NOT_APPLIED',
         jobUrl: '',
@@ -85,11 +88,29 @@ const Dashboard = () => {
     };
 
     const handleSwitchJourney = async (journeyId) => {
+        if (!journeyId || journeyId === primaryJourney?._id) return;
+        switchSeqRef.current += 1;
+        const currentSeq = switchSeqRef.current;
+        setIsSwitchingTarget(true);
+
         try {
+            const targetItem = otherJourneys.find(j => j._id === journeyId);
             await switchJourney(journeyId);
-            setActionFeedback({ type: 'success', message: 'Switched active learning journey.' });
+            if (currentSeq === switchSeqRef.current) {
+                setActionFeedback({
+                    type: 'success',
+                    message: `✓ Switched target to ${targetItem?.targetRole || 'selected position'}.`
+                });
+            }
         } catch (err) {
             console.error("Switch error:", err);
+            if (currentSeq === switchSeqRef.current) {
+                setActionFeedback({ type: 'error', message: "Couldn't switch target. Please try again." });
+            }
+        } finally {
+            if (currentSeq === switchSeqRef.current) {
+                setIsSwitchingTarget(false);
+            }
         }
     };
 
@@ -137,6 +158,9 @@ const Dashboard = () => {
                     </div>
 
                     <div className="header-actions">
+                        <Link to="/progress" className="button secondary-button">
+                            📊 Full Progress
+                        </Link>
                         <Link to="/" className="button primary-button header-cta-btn">
                             🚀 New Prep Plan
                         </Link>
@@ -240,11 +264,11 @@ const Dashboard = () => {
                        ══════════════════════════════════════════════════════ */
                     <div className="dashboard-active-view">
 
-                        {/* 1. HERO ACTIVE JOURNEY CARD */}
-                        <div className="hero-journey-card">
+                        {/* 1. HERO ACTIVE / COMPLETED JOURNEY CARD */}
+                        <div className={`hero-journey-card ${primaryJourney.status === 'COMPLETED' ? 'hero-journey-card--completed' : ''}`}>
                             <div className="hero-journey-header">
                                 <div className="journey-identity">
-                                    <span className="journey-status-pill">
+                                    <span className={`journey-status-pill ${primaryJourney.status === 'COMPLETED' ? 'journey-status-pill--completed' : ''}`}>
                                         {primaryJourney.status === 'COMPLETED' ? '🎉 JOURNEY COMPLETED' : '🔥 ACTIVE PREPARATION'}
                                     </span>
                                     <h2 className="journey-role">{primaryJourney.targetRole}</h2>
@@ -253,22 +277,13 @@ const Dashboard = () => {
                                     )}
                                 </div>
 
-                                {otherJourneys.length > 1 && (
-                                    <div className="journey-switcher">
-                                        <label htmlFor="journey-select" className="switcher-label">Switch Target:</label>
-                                        <select
-                                            id="journey-select"
-                                            className="journey-select"
-                                            value={primaryJourney._id}
-                                            onChange={(e) => handleSwitchJourney(e.target.value)}
-                                        >
-                                            {otherJourneys.map(j => (
-                                                <option key={j._id} value={j._id}>
-                                                    {j.targetRole} ({j.overallProgress}%)
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                {otherJourneys && otherJourneys.length > 0 && (
+                                    <TargetSwitcher
+                                        primaryJourney={primaryJourney}
+                                        otherJourneys={otherJourneys}
+                                        onSwitchJourney={handleSwitchJourney}
+                                        isSwitching={isSwitchingTarget}
+                                    />
                                 )}
                             </div>
 
@@ -276,7 +291,10 @@ const Dashboard = () => {
                             <div className="journey-progress-block">
                                 <div className="progress-labels">
                                     <span className="progress-step-text">
-                                        Day {currentDayNum} of {primaryJourney.roadmapDays}
+                                        {primaryJourney.status === 'COMPLETED'
+                                            ? `Completed: ${primaryJourney.roadmapDays} of ${primaryJourney.roadmapDays} Days`
+                                            : `Day ${currentDayNum} of ${primaryJourney.roadmapDays}`
+                                        }
                                     </span>
                                     <span className="progress-pct-text">
                                         {primaryJourney.overallProgress}% Overall Progress
@@ -284,7 +302,7 @@ const Dashboard = () => {
                                 </div>
                                 <div className="progress-bar-track">
                                     <div
-                                        className="progress-bar-fill"
+                                        className={`progress-bar-fill ${primaryJourney.status === 'COMPLETED' ? 'progress-bar-fill--completed' : ''}`}
                                         style={{ width: `${primaryJourney.overallProgress}%` }}
                                     />
                                 </div>
@@ -293,19 +311,35 @@ const Dashboard = () => {
                             {/* Current Focus & CTA */}
                             <div className="journey-focus-action-row">
                                 <div className="focus-info">
-                                    <span className="focus-label">CURRENT FOCUS:</span>
+                                    <span className="focus-label">
+                                        {primaryJourney.status === 'COMPLETED' ? 'STATUS SUMMARY:' : 'CURRENT FOCUS:'}
+                                    </span>
                                     <h4 className="focus-title">
-                                        {primaryJourney.currentFocus || currentDayPlan?.focus || `Day ${currentDayNum} Competencies`}
+                                        {primaryJourney.status === 'COMPLETED'
+                                            ? 'All curriculum days completed! You have finished your roadmap.'
+                                            : (primaryJourney.currentFocus || currentDayPlan?.focus || `Day ${currentDayNum} Competencies`)
+                                        }
                                     </h4>
-                                    {currentDayPlan?.whyThisMatters && (
+                                    {primaryJourney.status !== 'COMPLETED' && currentDayPlan?.whyThisMatters && (
                                         <p className="focus-why">💡 {currentDayPlan.whyThisMatters}</p>
                                     )}
                                 </div>
 
                                 <div className="focus-buttons">
-                                    <Link to={`/interview/${primaryJourney.reportId}`} className="button primary-button">
-                                        📖 Continue Roadmap
-                                    </Link>
+                                    {primaryJourney.status === 'COMPLETED' ? (
+                                        <>
+                                            <Link to="/progress" className="button primary-button">
+                                                🎉 View Completion Summary
+                                            </Link>
+                                            <Link to={`/readiness/${primaryJourney.reportId}`} className="button secondary-button">
+                                                🎯 Check Readiness
+                                            </Link>
+                                        </>
+                                    ) : (
+                                        <Link to={`/interview/${primaryJourney.reportId}`} className="button primary-button">
+                                            📖 Continue Roadmap
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -313,7 +347,7 @@ const Dashboard = () => {
                         {/* 2. FOUR REAL METRICS GRID */}
                         <div className="dashboard-metrics-grid">
                             {/* JD Readiness */}
-                            <div className="metric-card">
+                            <Link to={primaryJourney?.reportId ? `/readiness/${primaryJourney.reportId}` : '/readiness'} className="metric-card metric-card--clickable" style={{ textDecoration: 'none' }}>
                                 <div className="metric-header">
                                     <span className="metric-icon">🎯</span>
                                     <span className="metric-title">JD Readiness</span>
@@ -324,8 +358,8 @@ const Dashboard = () => {
                                         {readiness.jdReadiness >= 75 ? 'Ready to Apply' : 'In Preparation'}
                                     </span>
                                 </div>
-                                <p className="metric-footer-note">Match score + roadmap mastery</p>
-                            </div>
+                                <p className="metric-footer-note">View 8-point evidence breakdown →</p>
+                            </Link>
 
                             {/* Interview Practice Score */}
                             <div className="metric-card">
@@ -501,9 +535,9 @@ const Dashboard = () => {
                                             <span className="card-icon">💼</span>
                                             <h3>Job Application Tracker</h3>
                                         </div>
-                                        <span className={`status-pill status-pill--${appForm.status.toLowerCase()}`}>
-                                            {appForm.status.replace(/_/g, ' ')}
-                                        </span>
+                                        <Link to="/applications" className="link-view-all">
+                                            Open Tracker →
+                                        </Link>
                                     </div>
 
                                     <form onSubmit={handleSaveApplication} className="app-tracker-form">
@@ -516,6 +550,8 @@ const Dashboard = () => {
                                                 className="app-select"
                                             >
                                                 <option value="NOT_APPLIED">Not Applied Yet</option>
+                                                <option value="PREPARING">Preparing</option>
+                                                <option value="READY_TO_APPLY">Ready to Apply</option>
                                                 <option value="APPLIED">Applied</option>
                                                 <option value="INTERVIEW_SCHEDULED">Interview Scheduled</option>
                                                 <option value="INTERVIEW_COMPLETED">Interview Completed</option>
@@ -568,8 +604,8 @@ const Dashboard = () => {
                                             <span className="card-icon">🏆</span>
                                             <h3>Achievements ({unlockedAchievements.length})</h3>
                                         </div>
-                                        <Link to="/profile" className="link-view-all">
-                                            View All →
+                                        <Link to="/achievements" className="link-view-all">
+                                            View All Milestones →
                                         </Link>
                                     </div>
 

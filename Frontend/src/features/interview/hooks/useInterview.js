@@ -76,22 +76,33 @@ export const useInterview = () => {
         return response?.interviewReports || []
     }, [setLoading, setReports])
 
-    const getResumePdf = useCallback(async (interviewReportId) => {
-        setLoading(true)
-        let response = null
-        try {
-            response = await generateResumePdf({ interviewReportId })
-            const url = window.URL.createObjectURL(new Blob([ response ], { type: "application/pdf" }))
-            const link = document.createElement("a")
-            link.href = url
-            link.setAttribute("download", `resume_${interviewReportId}.pdf`)
-            document.body.appendChild(link)
-            link.click()
+    const getResumePdf = useCallback(async (interviewReportId, customFilename = null) => {
+        if (!interviewReportId) {
+            console.error("getResumePdf error: Missing interviewReportId");
+            throw new Error("Missing report ID for PDF generation");
         }
-        catch (error) {
-            console.error("getResumePdf error:", error)
+        setLoading(true);
+        try {
+            const response = await generateResumePdf({ interviewReportId });
+            if (!response) {
+                throw new Error("No PDF content returned from server");
+            }
+            const blob = new Blob([response], { type: "application/pdf" });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            const filename = customFilename || `JD_Ready_Resume_${interviewReportId}.pdf`;
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            return true;
+        } catch (error) {
+            console.error("getResumePdf error:", error);
+            throw error;
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     }, [setLoading])
 

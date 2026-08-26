@@ -5,93 +5,230 @@ const Achievement = require("../models/achievement.model");
 const JobApplication = require("../models/jobApplication.model");
 const interviewReportModel = require("../models/interviewReport.model");
 const PracticeSession = require("../models/practiceSession.model");
+const ProfileModel = require("../models/profile.model");
 const profileService = require("./profile.service");
 
 // Standard predefined achievements
 const PREDEFINED_ACHIEVEMENTS = {
+    first_analysis: {
+        id: "first_analysis",
+        type: "ANALYSIS",
+        category: "ANALYSIS",
+        title: "First Step",
+        description: "Completed your first job description and resume analysis.",
+        icon: "🎯",
+        targetValue: 1,
+        unit: "analysis"
+    },
     first_journey: {
         id: "first_journey",
         type: "JOURNEY",
+        category: "LEARNING",
         title: "First Journey",
         description: "Started your first targeted learning journey.",
-        icon: "🎯"
+        icon: "🎯",
+        targetValue: 1,
+        unit: "journey"
     },
     first_day: {
         id: "first_day",
         type: "ROADMAP",
+        category: "LEARNING",
         title: "First Day Complete",
         description: "Completed your first roadmap study day.",
-        icon: "📚"
+        icon: "📚",
+        targetValue: 1,
+        unit: "day"
     },
     five_days: {
         id: "five_days",
         type: "ROADMAP",
+        category: "LEARNING",
         title: "5 Days Complete",
         description: "Completed 5 days of structured roadmap learning.",
-        icon: "🏆"
+        icon: "🏆",
+        targetValue: 5,
+        unit: "days"
     },
     journey_master: {
         id: "journey_master",
         type: "JOURNEY",
+        category: "LEARNING",
         title: "Journey Master",
         description: "Completed all roadmap days for a target role.",
-        icon: "🎓"
+        icon: "🎓",
+        targetValue: 1,
+        unit: "journey"
+    },
+    roadmap_finisher: {
+        id: "roadmap_finisher",
+        type: "ROADMAP",
+        category: "LEARNING",
+        title: "Roadmap Finisher",
+        description: "Completed a full targeted preparation roadmap curriculum.",
+        icon: "📚",
+        targetValue: 1,
+        unit: "curriculum"
     },
     streak_3: {
         id: "streak_3",
         type: "STREAK",
+        category: "STREAK",
         title: "3 Day Streak",
         description: "Practiced and learned for 3 consecutive days.",
-        icon: "🔥"
+        icon: "🔥",
+        targetValue: 3,
+        unit: "days"
     },
     streak_7: {
         id: "streak_7",
         type: "STREAK",
+        category: "STREAK",
         title: "7 Day Streak",
         description: "Maintained active learning for 7 consecutive days.",
-        icon: "🔥"
+        icon: "🔥",
+        targetValue: 7,
+        unit: "days"
     },
     streak_14: {
         id: "streak_14",
         type: "STREAK",
+        category: "STREAK",
         title: "14 Day Streak",
         description: "Unstoppable! 14 consecutive days of active preparation.",
-        icon: "⚡"
+        icon: "⚡",
+        targetValue: 14,
+        unit: "days"
     },
-    voice_pioneer: {
-        id: "voice_pioneer",
-        type: "PRACTICE",
-        title: "Voice Interview Pioneer",
-        description: "Spoke and completed an interactive voice practice question.",
-        icon: "🎙️"
+    skill_builder: {
+        id: "skill_builder",
+        type: "SKILL",
+        category: "SKILLS",
+        title: "Skill Builder",
+        description: "Gained verified evidence for 3 unique skills.",
+        icon: "🧠",
+        targetValue: 3,
+        unit: "skills verified"
     },
-    quiz_champion: {
-        id: "quiz_champion",
-        type: "PRACTICE",
-        title: "MCQ Quiz Champion",
-        description: "Completed an MCQ quiz practice session with high accuracy.",
-        icon: "🧠"
-    },
-    star_storyteller: {
-        id: "star_storyteller",
-        type: "PRACTICE",
-        title: "STAR Storyteller",
-        description: "Completed behavioral practice using the STAR method.",
-        icon: "🚀"
+    skill_master: {
+        id: "skill_master",
+        type: "SKILL",
+        category: "SKILLS",
+        title: "Skill Master",
+        description: "Achieved strong mastery (>85%) in a target skill area.",
+        icon: "🎯",
+        targetValue: 1,
+        unit: "mastered skill"
     },
     project_builder: {
         id: "project_builder",
         type: "PROFILE",
+        category: "PROJECTS",
         title: "Project Builder",
-        description: "Added showcase projects with verified technologies.",
-        icon: "🛠"
+        description: "Added 2 completed showcase projects with verified technologies.",
+        icon: "🛠",
+        targetValue: 2,
+        unit: "projects"
+    },
+    voice_pioneer: {
+        id: "voice_pioneer",
+        type: "PRACTICE",
+        category: "PRACTICE",
+        title: "Voice Interview Pioneer",
+        description: "Spoke and completed an interactive voice practice question.",
+        icon: "🎙️",
+        targetValue: 1,
+        unit: "voice answer"
+    },
+    quiz_champion: {
+        id: "quiz_champion",
+        type: "PRACTICE",
+        category: "PRACTICE",
+        title: "MCQ Quiz Champion",
+        description: "Completed an MCQ quiz practice session with high accuracy.",
+        icon: "🧠",
+        targetValue: 1,
+        unit: "quiz"
+    },
+    star_storyteller: {
+        id: "star_storyteller",
+        type: "PRACTICE",
+        category: "PRACTICE",
+        title: "STAR Storyteller",
+        description: "Completed behavioral practice using the STAR method.",
+        icon: "🚀",
+        targetValue: 1,
+        unit: "STAR session"
+    },
+    interview_ready: {
+        id: "interview_ready",
+        type: "PRACTICE",
+        category: "PRACTICE",
+        title: "Interview Ready",
+        description: "Completed a full mock interview session.",
+        icon: "🎤",
+        targetValue: 1,
+        unit: "mock interview"
+    },
+    interview_practiced: {
+        id: "interview_practiced",
+        type: "PRACTICE",
+        category: "PRACTICE",
+        title: "Interview Practiced",
+        description: "Completed 5 mock practice sessions.",
+        icon: "🎙️",
+        targetValue: 5,
+        unit: "sessions"
+    },
+    resume_builder: {
+        id: "resume_builder",
+        type: "RESUME",
+        category: "RESUME",
+        title: "Resume Builder",
+        description: "Generated your first AI-tailored role resume.",
+        icon: "📄",
+        targetValue: 1,
+        unit: "resume"
+    },
+    application_ready_resume: {
+        id: "application_ready_resume",
+        type: "RESUME",
+        category: "RESUME",
+        title: "Application Ready",
+        description: "Created a verified JD-ready resume for submission.",
+        icon: "🚀",
+        targetValue: 1,
+        unit: "JD-ready resume"
+    },
+    first_application: {
+        id: "first_application",
+        type: "APPLICATION",
+        category: "APPLICATIONS",
+        title: "First Application",
+        description: "Created and tracked your first job application.",
+        icon: "💼",
+        targetValue: 1,
+        unit: "application"
+    },
+    offer_ready: {
+        id: "offer_ready",
+        type: "APPLICATION",
+        category: "APPLICATIONS",
+        title: "Offer Ready",
+        description: "Progressed an application to offer status or complete readiness.",
+        icon: "🏆",
+        targetValue: 1,
+        unit: "offer"
     },
     jd_ready: {
         id: "jd_ready",
         type: "READINESS",
+        category: "APPLICATIONS",
         title: "JD Ready",
         description: "Achieved >= 75% overall JD readiness for your target role.",
-        icon: "✅"
+        icon: "✅",
+        targetValue: 1,
+        unit: "readiness"
     }
 };
 
@@ -270,7 +407,14 @@ async function startJourney({ userId, reportId, timezone = "UTC" }) {
         // Award First Journey achievement
         await unlockAchievement(userId, "first_journey");
     } else {
-        journey.status = "ACTIVE";
+        const isAlreadyComplete = journey.status === "COMPLETED" || (journey.completedDays && journey.completedDays.length >= daysCount && daysCount > 0) || journey.overallProgress === 100;
+        if (isAlreadyComplete) {
+            journey.status = "COMPLETED";
+            journey.overallProgress = 100;
+            if (!journey.completedAt) journey.completedAt = journey.lastActivityAt || new Date();
+        } else {
+            journey.status = "ACTIVE";
+        }
         journey.isPrimary = true;
         journey.lastActivityAt = new Date();
         await journey.save();
@@ -352,8 +496,10 @@ async function completeRoadmapDay({ userId, journeyId, dayNumber, taskIndices = 
 
     if (journey.completedDays.length >= totalDays) {
         journey.status = "COMPLETED";
-        journey.completedAt = new Date();
+        journey.completedAt = journey.completedAt || new Date();
+        journey.overallProgress = 100;
         await unlockAchievement(userId, "journey_master");
+        await unlockAchievement(userId, "roadmap_finisher");
     }
 
     await journey.save();
@@ -549,8 +695,10 @@ async function getActiveDashboardData({ userId, timezone = "UTC" }) {
     const profileResult = await profileService.getProfileByUserId(userId);
     const profileScore = profileResult?.completionPercentage || 0;
 
-    // 8. Other journeys for switcher
-    const otherJourneys = await LearningJourney.find({ user: userId }).sort({ updatedAt: -1 });
+    // 8. Other journeys for switcher with populated report for accurate matchScores
+    const otherJourneys = await LearningJourney.find({ user: userId })
+        .sort({ updatedAt: -1 })
+        .populate("report");
 
     // 9. Job Application Status
     let application = null;
@@ -623,7 +771,9 @@ async function getActiveDashboardData({ userId, timezone = "UTC" }) {
             overallProgress: j.overallProgress,
             currentDay: j.currentDay,
             roadmapDays: j.roadmapDays,
-            isPrimary: j.isPrimary
+            isPrimary: j.isPrimary,
+            matchScore: j.report?.matchScore || 0,
+            reportId: j.report?._id || j.report
         })),
         application
     };
@@ -634,12 +784,15 @@ async function getActiveDashboardData({ userId, timezone = "UTC" }) {
  */
 async function switchPrimaryJourney({ userId, journeyId }) {
     await LearningJourney.updateMany({ user: userId }, { isPrimary: false });
-    const updated = await LearningJourney.findOneAndUpdate(
-        { _id: journeyId, user: userId },
-        { isPrimary: true, status: "ACTIVE" },
-        { new: true }
-    );
-    return updated;
+    const targetJourney = await LearningJourney.findOne({ _id: journeyId, user: userId });
+    if (!targetJourney) throw new Error("Learning journey not found");
+
+    targetJourney.isPrimary = true;
+    if (targetJourney.status !== "COMPLETED") {
+        targetJourney.status = "ACTIVE";
+    }
+    await targetJourney.save();
+    return targetJourney;
 }
 
 /**
@@ -671,6 +824,334 @@ async function updateApplicationStatus({ userId, journeyId, status, jobUrl, note
     return app;
 }
 
+/**
+ * Get dynamic achievement milestones progression for career hub
+ */
+async function getAchievementProgression(userId, timezone = "UTC") {
+    const [
+        achievements,
+        reports,
+        journeys,
+        profile,
+        completedSessions,
+        applications,
+        streaks
+    ] = await Promise.all([
+        Achievement.find({ user: userId }),
+        interviewReportModel.find({ user: userId }),
+        LearningJourney.find({ user: userId }),
+        ProfileModel.findOne({ user: userId }),
+        PracticeSession.find({ user: userId, status: "COMPLETED" }),
+        JobApplication.find({ user: userId }),
+        calculateStreaks(userId, timezone)
+    ]);
+
+    const unlockedMap = new Map();
+    achievements.forEach(a => unlockedMap.set(a.achievementId, a));
+
+    // Calculate real dynamic metric values
+    const reportsCount = reports.length;
+    const journeysCount = journeys.length;
+    const completedJourneysCount = journeys.filter(j => j.status === "COMPLETED").length;
+    const totalCompletedDays = journeys.reduce((sum, j) => sum + (j.completedDays?.length || 0), 0);
+
+    // Verified skills
+    const verifiedSkillsSet = new Set();
+    if (profile?.skills) {
+        profile.skills.forEach(s => {
+            if (s && s.name && (s.evidenceType === "VERIFIED" || s.source === "Resume" || s.source === "Project")) {
+                verifiedSkillsSet.add(s.name.trim().toLowerCase());
+            }
+        });
+    }
+    const verifiedSkillsCount = verifiedSkillsSet.size;
+
+    // Completed Projects
+    const profileCompletedProjects = (profile?.projects || []).filter(p => p.status === "Completed").length;
+    let reportCompletedProjects = 0;
+    reports.forEach(r => {
+        if (Array.isArray(r.recommendedProjects)) {
+            reportCompletedProjects += r.recommendedProjects.filter(p => p.status === "COMPLETED").length;
+        }
+    });
+    const completedProjectsCount = Math.max(profileCompletedProjects, reportCompletedProjects);
+
+    // Practice counts & types
+    let voiceCount = 0;
+    let mcqCount = 0;
+    let starCount = 0;
+    let mockInterviewCount = 0;
+    let hasMasteredSkill = false;
+
+    completedSessions.forEach(s => {
+        if (s.planType === "MIXED") mockInterviewCount++;
+        if (s.planType === "MCQ") mcqCount++;
+        if (s.planType === "BEHAVIORAL") starCount++;
+        if (Array.isArray(s.answers)) {
+            s.answers.forEach(ans => {
+                if (ans.isVoice) voiceCount++;
+            });
+        }
+        if (Array.isArray(s.topicPerformance)) {
+            if (s.topicPerformance.some(tp => tp.score >= 85)) {
+                hasMasteredSkill = true;
+            }
+        }
+    });
+
+    const applicationsCount = applications.length;
+    const offersCount = applications.filter(a => a.status === "OFFER").length;
+    const hasJdReady = reports.some(r => (r.matchScore || 0) >= 75) || journeys.some(j => (j.overallProgress || 0) >= 75);
+
+    // Auto-unlock achievements if conditions met and not yet recorded
+    const milestones = await Promise.all(Object.values(PREDEFINED_ACHIEVEMENTS).map(async (def) => {
+        let currentProgress = 0;
+
+        switch (def.id) {
+            case "first_analysis":
+                currentProgress = Math.min(def.targetValue, reportsCount);
+                break;
+            case "first_journey":
+                currentProgress = Math.min(def.targetValue, journeysCount);
+                break;
+            case "first_day":
+                currentProgress = Math.min(def.targetValue, totalCompletedDays);
+                break;
+            case "five_days":
+                currentProgress = Math.min(def.targetValue, totalCompletedDays);
+                break;
+            case "journey_master":
+            case "roadmap_finisher":
+                currentProgress = Math.min(def.targetValue, completedJourneysCount);
+                break;
+            case "streak_3":
+                currentProgress = Math.min(def.targetValue, streaks.currentStreak);
+                break;
+            case "streak_7":
+                currentProgress = Math.min(def.targetValue, streaks.currentStreak);
+                break;
+            case "streak_14":
+                currentProgress = Math.min(def.targetValue, streaks.currentStreak);
+                break;
+            case "skill_builder":
+                currentProgress = Math.min(def.targetValue, verifiedSkillsCount);
+                break;
+            case "skill_master":
+                currentProgress = hasMasteredSkill ? 1 : 0;
+                break;
+            case "project_builder":
+                currentProgress = Math.min(def.targetValue, completedProjectsCount);
+                break;
+            case "voice_pioneer":
+                currentProgress = Math.min(def.targetValue, voiceCount);
+                break;
+            case "quiz_champion":
+                currentProgress = Math.min(def.targetValue, mcqCount);
+                break;
+            case "star_storyteller":
+                currentProgress = Math.min(def.targetValue, starCount);
+                break;
+            case "interview_ready":
+                currentProgress = Math.min(def.targetValue, mockInterviewCount);
+                break;
+            case "interview_practiced":
+                currentProgress = Math.min(def.targetValue, completedSessions.length);
+                break;
+            case "resume_builder":
+                currentProgress = reportsCount > 0 ? 1 : 0;
+                break;
+            case "application_ready_resume":
+                currentProgress = hasJdReady ? 1 : 0;
+                break;
+            case "first_application":
+                currentProgress = Math.min(def.targetValue, applicationsCount);
+                break;
+            case "offer_ready":
+                currentProgress = Math.min(def.targetValue, offersCount);
+                break;
+            case "jd_ready":
+                currentProgress = hasJdReady ? 1 : 0;
+                break;
+            default:
+                currentProgress = 0;
+        }
+
+        let isUnlocked = unlockedMap.has(def.id);
+        let unlockedAt = isUnlocked ? unlockedMap.get(def.id).unlockedAt : null;
+
+        // Auto-persist unlock if qualifying target reached
+        if (!isUnlocked && currentProgress >= def.targetValue && def.targetValue > 0) {
+            try {
+                const unlocked = await unlockAchievement(userId, def.id);
+                if (unlocked) {
+                    isUnlocked = true;
+                    unlockedAt = unlocked.unlockedAt;
+                }
+            } catch (e) {
+                // Ignore unique race condition
+            }
+        }
+
+        const progressPercent = def.targetValue > 0
+            ? Math.min(100, Math.round((currentProgress / def.targetValue) * 100))
+            : (isUnlocked ? 100 : 0);
+
+        const remainingCount = Math.max(0, def.targetValue - currentProgress);
+        let evidenceText = "";
+        let requirementText = def.description;
+        let actionLink = "/";
+        let actionLabel = "View";
+
+        switch (def.id) {
+            case "first_analysis":
+                evidenceText = reportsCount > 0 ? `Analyzed ${reports[0]?.title || "Target Role"} at ${reports[0]?.company || "Company"}` : "";
+                requirementText = "Analyze at least 1 job description and resume.";
+                actionLink = "/";
+                actionLabel = "Analyze Job";
+                break;
+            case "first_journey":
+                evidenceText = journeysCount > 0 ? `Started ${journeys[0]?.targetRole || "Target Role"} Journey` : "";
+                requirementText = "Start your first targeted learning journey.";
+                actionLink = "/dashboard";
+                actionLabel = "View Journey";
+                break;
+            case "first_day":
+                evidenceText = totalCompletedDays > 0 ? "Completed Day 1 of structured roadmap" : "";
+                requirementText = "Complete Day 1 of any learning roadmap.";
+                actionLink = "/dashboard";
+                actionLabel = "Continue Roadmap";
+                break;
+            case "five_days":
+                evidenceText = totalCompletedDays >= 5 ? `Completed ${totalCompletedDays} roadmap days` : "";
+                requirementText = "Complete at least 5 roadmap learning days.";
+                actionLink = "/dashboard";
+                actionLabel = "Continue Roadmap";
+                break;
+            case "roadmap_finisher":
+            case "journey_master":
+                evidenceText = completedJourneysCount > 0 ? `Completed 100% of ${journeys.find(j => j.status === "COMPLETED")?.targetRole || "Roadmap"}` : "";
+                requirementText = "Complete all days of a target role preparation roadmap.";
+                actionLink = "/progress";
+                actionLabel = "View Progress";
+                break;
+            case "streak_3":
+            case "streak_7":
+            case "streak_14":
+                evidenceText = streaks.currentStreak >= def.targetValue ? `${streaks.currentStreak}-day active learning streak` : "";
+                requirementText = `Maintain active qualifying preparation for ${def.targetValue} consecutive days.`;
+                actionLink = "/dashboard";
+                actionLabel = "Learn Today";
+                break;
+            case "skill_builder":
+            case "skill_expert":
+                evidenceText = verifiedSkillsCount > 0 ? `Verified ${verifiedSkillsCount} skills with evidence` : "";
+                requirementText = `Verify at least ${def.targetValue} unique skills through projects, resume, or practice.`;
+                actionLink = "/profile";
+                actionLabel = "View Skills";
+                break;
+            case "skill_master":
+                evidenceText = hasMasteredSkill ? "Scored >= 85% topic mastery in practice" : "";
+                requirementText = "Score 85% or higher in any technical topic during practice.";
+                actionLink = "/practice";
+                actionLabel = "Practice Questions";
+                break;
+            case "project_builder":
+            case "project_architect":
+                evidenceText = completedProjectsCount > 0 ? `Completed ${completedProjectsCount} showcase projects` : "";
+                requirementText = `Add ${def.targetValue} completed showcase projects with verified tech stack.`;
+                actionLink = "/profile";
+                actionLabel = "Manage Projects";
+                break;
+            case "voice_pioneer":
+                evidenceText = voiceCount > 0 ? "Completed voice-recorded practice response" : "";
+                requirementText = "Answer at least 1 practice question using voice speech.";
+                actionLink = "/practice";
+                actionLabel = "Voice Practice";
+                break;
+            case "quiz_champion":
+                evidenceText = mcqCount > 0 ? "Scored high accuracy in MCQ technical quiz" : "";
+                requirementText = "Complete an MCQ practice quiz session.";
+                actionLink = "/practice";
+                actionLabel = "Take Quiz";
+                break;
+            case "star_storyteller":
+                evidenceText = starCount > 0 ? "Completed behavioral interview with STAR method" : "";
+                requirementText = "Complete a behavioral interview session using STAR framework.";
+                actionLink = "/practice";
+                actionLabel = "Practice Behavioral";
+                break;
+            case "interview_ready":
+                evidenceText = mockInterviewCount > 0 ? "Completed full mixed mock interview" : "";
+                requirementText = "Complete a comprehensive mock interview session.";
+                actionLink = "/practice";
+                actionLabel = "Start Mock";
+                break;
+            case "interview_practiced":
+                evidenceText = completedSessions.length >= 5 ? `Completed ${completedSessions.length} practice sessions` : "";
+                requirementText = "Complete 5 mock interview or practice sessions.";
+                actionLink = "/practice";
+                actionLabel = "Practice Hub";
+                break;
+            case "resume_builder":
+                evidenceText = reportsCount > 0 ? "Generated tailored role resume" : "";
+                requirementText = "Generate a tailored AI resume for a target job.";
+                actionLink = "/readiness";
+                actionLabel = "View Resume";
+                break;
+            case "application_ready_resume":
+            case "jd_ready":
+                evidenceText = hasJdReady ? "Achieved >= 75% target role readiness" : "";
+                requirementText = "Reach 75% or higher overall readiness for a target position.";
+                actionLink = "/readiness";
+                actionLabel = "Check Readiness";
+                break;
+            case "first_application":
+            case "offer_ready":
+                evidenceText = applicationsCount > 0 ? `Tracked ${applicationsCount} job applications` : "";
+                requirementText = "Track a job application in the Application Tracker.";
+                actionLink = "/applications";
+                actionLabel = "Track Job";
+                break;
+            default:
+                break;
+        }
+
+        return {
+            id: def.id,
+            type: def.type,
+            category: def.category || "LEARNING",
+            title: def.title,
+            description: def.description,
+            icon: def.icon || "🏆",
+            targetValue: def.targetValue || 1,
+            currentProgress,
+            unit: def.unit || "progress",
+            progressPercent,
+            isUnlocked,
+            unlockedAt,
+            evidence: evidenceText,
+            requirement: requirementText,
+            remainingCount,
+            actionLink,
+            actionLabel
+        };
+    }));
+
+    const unlockedCount = milestones.filter(m => m.isUnlocked).length;
+    const totalCount = milestones.length;
+    const completionPercentage = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0;
+
+    return {
+        summary: {
+            unlockedCount,
+            totalCount,
+            completionPercentage,
+            currentStreak: streaks.currentStreak
+        },
+        milestones
+    };
+}
+
 module.exports = {
     startJourney,
     getJourneyStatus,
@@ -683,5 +1164,6 @@ module.exports = {
     updateApplicationStatus,
     calculateStreaks,
     unlockAchievement,
+    getAchievementProgression,
     PREDEFINED_ACHIEVEMENTS
 };

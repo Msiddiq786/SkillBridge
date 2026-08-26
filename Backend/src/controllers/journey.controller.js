@@ -218,6 +218,22 @@ async function updateApplicationController(req, res) {
     }
 }
 
+/**
+ * Get Achievement Milestones Progression
+ * GET /api/journey/achievements/progression
+ */
+async function getAchievementsProgressionController(req, res) {
+    try {
+        const userId = req.user?.id || req.user?._id;
+        const timezone = req.query.timezone || req.headers["x-timezone"] || "UTC";
+        const data = await journeyService.getAchievementProgression(userId, timezone);
+        return res.status(200).json(data);
+    } catch (err) {
+        console.error("getAchievementsProgressionController error:", err);
+        return res.status(500).json({ message: err.message || "Failed to load achievements progression" });
+    }
+}
+
 module.exports = {
     startJourneyController,
     getJourneyStatusController,
@@ -226,5 +242,6 @@ module.exports = {
     updateTasksController,
     recordActivityController,
     switchJourneyController,
-    updateApplicationController
+    updateApplicationController,
+    getAchievementsProgressionController
 };

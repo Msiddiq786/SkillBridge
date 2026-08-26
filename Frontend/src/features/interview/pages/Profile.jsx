@@ -1022,6 +1022,11 @@ export const Profile = () => {
                                     <h3>Preparation Badges & Milestones</h3>
                                     <p>Earned automatically by completing roadmap days, daily streaks, and interview practice.</p>
                                 </div>
+                                <div className="section-toolbar-right">
+                                    <Link to="/progress" className="button secondary-button btn-sm">
+                                        📊 Full Progress
+                                    </Link>
+                                </div>
                             </div>
 
                             <div className="profile-grid-2col">

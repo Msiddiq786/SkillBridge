@@ -359,6 +359,34 @@ async function completeSession({ userId, sessionId }) {
 
     await session.save();
 
+    // Record qualifying learning activity for streak and active learning time
+    try {
+        const journeyService = require("./journey.service");
+        await journeyService.recordActivity({
+            userId,
+            activityType: "PRACTICE_COMPLETED",
+            title: `Completed ${session.mode ? session.mode.toUpperCase() : "Interview"} Practice Session`,
+            detail: `Overall Score: ${overallScore}% (${attemptedCount} questions answered)`,
+            isQualifying: true,
+            activeMinutes: 20
+        });
+
+        if (session.mode === "mixed") {
+            await journeyService.unlockAchievement(userId, "interview_ready");
+        }
+        if (session.mode === "mcq" && overallScore >= 80) {
+            await journeyService.unlockAchievement(userId, "quiz_champion");
+        }
+        if (session.mode === "behavioral") {
+            await journeyService.unlockAchievement(userId, "star_storyteller");
+        }
+        if (session.answers && session.answers.some(a => a.isVoice)) {
+            await journeyService.unlockAchievement(userId, "voice_pioneer");
+        }
+    } catch (e) {
+        console.error("Practice completion activity error:", e);
+    }
+
     return {
         session,
         report,

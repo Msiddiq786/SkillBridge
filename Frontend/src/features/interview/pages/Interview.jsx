@@ -1274,6 +1274,22 @@ const RequirementTable = ({ items = [], roadmapPlan = [], onNavigateToRoadmap })
 const DualResumeSection = ({ report, onDownloadPdf, onNavigateTab }) => {
     const [subTab, setSubTab] = useState('tailored'); // 'tailored' | 'blueprint'
     const [blueprintFilter, setBlueprintFilter] = useState('ALL');
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    const handleDownloadClick = async () => {
+        if (isDownloading) return;
+        try {
+            setIsDownloading(true);
+            if (onDownloadPdf) {
+                await onDownloadPdf();
+            }
+        } catch (err) {
+            console.error("PDF download error:", err);
+            alert("Unable to generate your JD-ready resume. Please try again.");
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     const classificationList = report?.skillClassification || [];
     const roadmapPlan = report?.preparationPlan || [];
@@ -1872,9 +1888,10 @@ const DualResumeSection = ({ report, onDownloadPdf, onNavigateTab }) => {
                         <button
                             type="button"
                             className="button primary-button download-resume-cta"
-                            onClick={onDownloadPdf}
+                            onClick={handleDownloadClick}
+                            disabled={isDownloading}
                         >
-                            ⬇️ Download ATS-Ready PDF
+                            {isDownloading ? "⏳ Generating Resume..." : "⬇️ Download ATS-Ready PDF"}
                         </button>
                     </div>
 
@@ -1906,8 +1923,13 @@ const DualResumeSection = ({ report, onDownloadPdf, onNavigateTab }) => {
                     <div className="ats-resume-preview-card">
                         <div className="preview-topbar">
                             <span className="preview-label">A4 Single-Page ATS Document Preview</span>
-                            <button type="button" className="preview-download-btn" onClick={onDownloadPdf}>
-                                📄 Download PDF
+                            <button
+                                type="button"
+                                className="preview-download-btn"
+                                onClick={handleDownloadClick}
+                                disabled={isDownloading}
+                            >
+                                {isDownloading ? "⏳ Generating..." : "📄 Download PDF"}
                             </button>
                         </div>
 
