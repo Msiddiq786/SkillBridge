@@ -1,72 +1,60 @@
-import axios from "axios"
-
-
-const api = axios.create({
-    baseURL: "http://localhost:3000",
-    withCredentials: true
-})
+import api from "../../../services/apiClient";
 
 export async function register({ username, email, password }) {
-
     try {
         const response = await api.post('/api/auth/register', {
             username, email, password
-        })
-
-        return response.data
-
+        });
+        if (response.data?.token) {
+            try { localStorage.setItem("token", response.data.token); } catch {}
+        }
+        return response.data;
     } catch (err) {
-
-        console.log(err)
-
+        console.error("Register error:", err);
+        throw err;
     }
-
 }
 
 export async function login({ email, password }) {
-
     try {
-
         const response = await api.post("/api/auth/login", {
             email, password
-        })
-
-        return response.data
-
+        });
+        if (response.data?.token) {
+            try { localStorage.setItem("token", response.data.token); } catch {}
+        }
+        return response.data;
     } catch (err) {
-        console.log(err)
+        console.error("Login error:", err);
         throw err;
     }
-
 }
 
 export async function googleLogin({ credential }) {
     const response = await api.post("/api/auth/google", { credential });
+    if (response.data?.token) {
+        try { localStorage.setItem("token", response.data.token); } catch {}
+    }
     return response.data;
 }
 
 export async function logout() {
     try {
-
-        const response = await api.get("/api/auth/logout")
-
-        return response.data
-
+        const response = await api.get("/api/auth/logout");
+        try { localStorage.removeItem("token"); } catch {}
+        return response.data;
     } catch (err) {
-
+        console.error("Logout error:", err);
+        try { localStorage.removeItem("token"); } catch {}
     }
 }
 
 export async function getMe() {
-
     try {
-
-        const response = await api.get("/api/auth/get-me")
-
-        return response.data
-
+        const response = await api.get("/api/auth/get-me");
+        return response.data;
     } catch (err) {
-        console.log(err)
+        console.error("getMe error:", err);
+        throw err;
     }
-
 }

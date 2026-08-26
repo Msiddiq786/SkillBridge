@@ -6,6 +6,17 @@ const { OAuth2Client } = require("google-auth-library");
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+const isProduction = process.env.NODE_ENV === "production" || (process.env.CLIENT_URL && process.env.CLIENT_URL.startsWith("https://"));
+
+function getCookieOptions() {
+    return {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: 24 * 60 * 60 * 1000 // 1 day
+    };
+}
+
 /**
  * @name registerUserController
  * @description register a new user, expects username, email and password in the request body
@@ -44,10 +55,11 @@ async function registerUserController(req, res) {
         { expiresIn: "1d" }
     );
 
-    res.cookie("token", token);
+    res.cookie("token", token, getCookieOptions());
 
     res.status(201).json({
         message: "User registered successfully",
+        token,
         user: {
             id: user._id,
             username: user.username,
@@ -99,7 +111,7 @@ async function loginUserController(req, res) {
         { expiresIn: "1d" }
     );
 
-    res.cookie("token", token);
+    res.cookie("token", token, getCookieOptions());
 
     // Track user login in learning history (non-qualifying, does not increase streak)
     try {
@@ -111,6 +123,7 @@ async function loginUserController(req, res) {
 
     res.status(200).json({
         message: "User loggedIn successfully.",
+        token,
         user: {
             id: user._id,
             username: user.username,
@@ -224,7 +237,7 @@ async function googleAuthController(req, res) {
             { expiresIn: "1d" }
         );
 
-        res.cookie("token", token);
+        res.cookie("token", token, getCookieOptions());
 
         // Track user login in learning history
         try {
@@ -236,6 +249,7 @@ async function googleAuthController(req, res) {
 
         return res.status(200).json({
             message: "Google sign-in successful",
+            token,
             user: {
                 id: user._id,
                 username: user.username,
@@ -257,13 +271,15 @@ async function googleAuthController(req, res) {
  * @access public
  */
 async function logoutUserController(req, res) {
-    const token = req.cookies.token;
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    const bearerToken = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
+    const token = req.cookies?.token || bearerToken;
 
     if (token) {
         await tokenBlacklistModel.create({ token });
     }
 
-    res.clearCookie("token");
+    res.clearCookie("token", getCookieOptions());
 
     res.status(200).json({
         message: "User logged out successfully"
